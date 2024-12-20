@@ -10,7 +10,7 @@ hostname = ""
 try:
     hostname = sys.argv[1].strip()
 except IndexError:
-    print("Need hostname", file=sys.stderr)
+    print("Need server hostname", file=sys.stderr)
     exit(1)
 
 # Create the image

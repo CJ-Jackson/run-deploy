@@ -14,7 +14,7 @@ try:
     hostname = sys.argv[1].strip()
     ssh_address = sys.argv[2].strip()
 except IndexError:
-    print("Need hostname and ssh address", file=sys.stderr)
+    print("Need server hostname and ssh address", file=sys.stderr)
     exit(1)
 
 # Get the last deploy

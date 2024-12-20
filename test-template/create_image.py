@@ -12,7 +12,7 @@ hostname = ""
 try:
     hostname = sys.argv[1].strip()
 except IndexError:
-    print("Need hostname", file=sys.stderr)
+    print("Need server hostname", file=sys.stderr)
     exit(1)
 
 project_path = os.path.dirname(os.path.abspath(__file__))
