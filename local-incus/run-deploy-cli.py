@@ -10,7 +10,7 @@ try:
     incus_name = sys.argv[1]
     image_ref = sys.argv[2]
     command_ref = sys.argv[3]
-except:
+except IndexError:
     print("Must have incus_name, image_ref and command_ref", file=sys.stderr)
     exit(1)
 
@@ -35,3 +35,16 @@ match command_ref:
         revision = list(reversed(revision))
         for rev in revision:
             print(rev)
+    case "revert":
+        revision_name = ""
+        try:
+            revision_name = sys.argv[4]
+        except IndexError:
+            print("Must have revision name", file=sys.stderr)
+            exit(2)
+        if '/' in revision_name:
+            print("Revision name must not have /", file=sys.stderr)
+            exit(2)
+        subprocess.run([
+            "incus", "exec", incus_name, "--", f"{image_path}/{revision_name}"
+        ])
