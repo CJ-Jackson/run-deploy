@@ -25,3 +25,13 @@ match command_ref:
             "incus", "exec", incus_name, "--", "realpath", f"{image_path}/{image_ref}.squashfs"
         ], capture_output=True, check=True).stdout.decode('utf-8').strip().removesuffix('.squashfs')
         print(os.path.basename(last_path))
+    case "list-revision":
+        revision = subprocess.run([
+            "incus", "exec", incus_name, "--", "sh", "-c", f"ls -1a {image_path}/*.squashfs"
+        ], capture_output=True, check=True).stdout.decode('utf-8').strip().splitlines()
+        revision.pop()
+        for index in range(len(revision)):
+            revision[index] = os.path.basename(revision[index]).removesuffix('.squashfs')
+        revision = list(reversed(revision))
+        for rev in revision:
+            print(rev)
