@@ -77,7 +77,7 @@ if '/' in to_exec:
     valid = False
 
 if not valid:
-    print("Cannot have '/' in values, also image directory name must also be in file.")
+    print("Cannot have '/' in values, also image directory name must also be in file.", file=sys.stderr)
     exit(1)
 
 # Copy files
