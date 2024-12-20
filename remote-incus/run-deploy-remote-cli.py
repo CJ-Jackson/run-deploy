@@ -17,7 +17,7 @@ except IndexError:
 
 token_ref = ''.join(random.choice(string.ascii_letters+string.digits) for x in range(64))
 token_file_name = f"/tmp/run-deploy-token-{token_ref}"
-token_path = pathlib.Path(token_file_name).write_bytes(os.urandom(2048))
+pathlib.Path(token_file_name).write_bytes(os.urandom(2048))
 
 subprocess.run([
     "minisign", "-Sm", token_file_name
