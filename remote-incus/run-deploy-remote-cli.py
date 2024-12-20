@@ -26,6 +26,8 @@ subprocess.run([
 subprocess.run([
     "scp", token_file_name, f"{token_file_name}.minisig", f"{ssh_address}:/tmp"
 ], check=True, capture_output=True)
+os.remove(token_file_name)
+os.remove(f"{token_file_name}.minisig")
 
 env_token = f"RUN_DEPLOY_TOKEN={token_ref}"
 env_key = f"RUN_DEPLOY_KEY='{getpass.getuser()}@{socket.gethostname()}'"
