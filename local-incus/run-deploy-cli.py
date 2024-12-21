@@ -25,13 +25,24 @@ match command_ref:
             "incus", "exec", incus_name, "--", "realpath", f"{image_path}/{image_ref}.squashfs"
         ], capture_output=True, check=True).stdout.decode('utf-8').strip().removesuffix('.squashfs')
         print(os.path.basename(last_path))
+    case "last-deploy-blame":
+        last_path = subprocess.run([
+            "incus", "exec", incus_name, "--", "realpath", f"{image_path}/{image_ref}.squashfs"
+        ], capture_output=True, check=True).stdout.decode('utf-8').strip().removesuffix('.squashfs')
+        blame = subprocess.run([
+            "incus", "exec", incus_name, "--", "cat", f"{last_path}.blame"
+        ], capture_output=True, check=True).stdout.decode('utf-8').strip()
+        print(blame)
     case "list-revision":
         revision = subprocess.run([
-            "incus", "exec", incus_name, "--", "sh", "-c", f"ls -1a {image_path}/*.squashfs"
+            "incus", "exec", incus_name, "--", "sh", "-c", f"ls -1a {image_path}/*.blame"
         ], capture_output=True, check=True).stdout.decode('utf-8').strip().splitlines()
-        revision.pop()
         for index in range(len(revision)):
-            revision[index] = os.path.basename(revision[index]).removesuffix('.squashfs')
+            revision_name = str(revision[index]).removesuffix('.blame')
+            blame = subprocess.run([
+                "incus", "exec", incus_name, "--", "cat", f"{revision_name}.blame"
+            ], check=True, capture_output=True).stdout.decode('utf-8').strip()
+            revision[index] = f"{os.path.basename(revision_name)}   blame: {blame}"
         revision = list(reversed(revision))
         for rev in revision:
             print(rev)
