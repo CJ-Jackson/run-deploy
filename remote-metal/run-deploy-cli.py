@@ -55,11 +55,21 @@ match command_ref:
             print("There isn't a last deploy", file=sys.stderr)
             exit(1)
     case "list-revision":
+        last_path = ""
+        if os.path.exists(f"{image_path}/{image_ref}.squashfs"):
+            last_path = os.path.basename(os.path.realpath(f"{image_path}/{image_ref}.squashfs")).removesuffix('.squashfs')
+        else:
+            print("There isn't a last deploy", file=sys.stderr)
+            exit(1)
         revision = list(pathlib.Path(image_path).glob(f'*.blame'))
         for index in range(len(revision)):
             revision_name = str(revision[index]).removesuffix('.blame')
             blame = pathlib.Path(f"{revision_name}.blame").read_text('utf-8')
-            revision[index] = f"{os.path.basename(revision_name)}   blame: {blame}"
+            revision_name = os.path.basename(revision_name)
+            current = ""
+            if revision_name == last_path:
+                current = "     *CURRENT*"
+            revision[index] = f"{revision_name}   blame: {blame}{current}"
         revision.sort()
         revision = list(reversed(revision))
         for rev in revision:

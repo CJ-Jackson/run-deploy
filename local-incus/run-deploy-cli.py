@@ -34,6 +34,10 @@ match command_ref:
         ], capture_output=True, check=True).stdout.decode('utf-8').strip()
         print(blame)
     case "list-revision":
+        last_path = subprocess.run([
+            "incus", "exec", incus_name, "--cwd", image_path, "--", "realpath", f"{image_ref}.squashfs"
+        ], capture_output=True, check=True).stdout.decode('utf-8').strip().removesuffix('.squashfs')
+        last_path = os.path.basename(last_path)
         revision = subprocess.run([
             "incus", "exec", incus_name, "--cwd", image_path, "--", "sh", "-c", "for f in *.blame; do (echo \"${f}:$(cat ${f})\";); done"
         ], capture_output=True, check=True).stdout.decode('utf-8').strip().splitlines()
@@ -41,7 +45,10 @@ match command_ref:
             revision_data = str(revision[index]).split(':')
             blame = revision_data.pop()
             revision_name = ':'.join(revision_data).removesuffix('.blame')
-            revision[index] = f"{revision_name}   blame: {blame}"
+            current = ""
+            if revision_name == last_path:
+                current = "     *CURRENT*"
+            revision[index] = f"{revision_name}   blame: {blame}{current}"
         revision.sort()
         revision = list(reversed(revision))
         for rev in revision:
