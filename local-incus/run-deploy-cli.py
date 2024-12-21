@@ -22,20 +22,20 @@ image_path = f"/opt/image/{image_ref}"
 match command_ref:
     case "last-deploy":
         last_path = subprocess.run([
-            "incus", "exec", incus_name, "--", "realpath", f"{image_path}/{image_ref}.squashfs"
+            "incus", "exec", incus_name, "--cwd", image_path, "--", "realpath", f"{image_ref}.squashfs"
         ], capture_output=True, check=True).stdout.decode('utf-8').strip().removesuffix('.squashfs')
         print(os.path.basename(last_path))
     case "last-deploy-blame":
         last_path = subprocess.run([
-            "incus", "exec", incus_name, "--", "realpath", f"{image_path}/{image_ref}.squashfs"
+            "incus", "exec", incus_name, "--cwd", image_path, "--", "realpath", f"{image_ref}.squashfs"
         ], capture_output=True, check=True).stdout.decode('utf-8').strip().removesuffix('.squashfs')
         blame = subprocess.run([
-            "incus", "exec", incus_name, "--", "cat", f"{last_path}.blame"
+            "incus", "exec", incus_name, "--cwd", image_path, "--", "cat", f"{os.path.basename(last_path)}.blame"
         ], capture_output=True, check=True).stdout.decode('utf-8').strip()
         print(blame)
     case "list-revision":
         revision = subprocess.run([
-            "incus", "exec", incus_name, "--", "sh", "-c", f"cd '{image_path}'; for f in *.blame; do (echo \"${{f}}:$(cat ${{f}})\";); done"
+            "incus", "exec", incus_name, "--cwd", image_path, "--", "sh", "-c", "for f in *.blame; do (echo \"${f}:$(cat ${f})\";); done"
         ], capture_output=True, check=True).stdout.decode('utf-8').strip().splitlines()
         for index in range(len(revision)):
             revision_data = str(revision[index]).split(':')
