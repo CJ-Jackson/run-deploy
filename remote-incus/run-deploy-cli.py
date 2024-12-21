@@ -57,14 +57,13 @@ match command_ref:
         print(blame)
     case "list-revision":
         revision = subprocess.run([
-            "incus", "exec", incus_name, "--", "sh", "-c", f"ls -1a {image_path}/*.blame"
+            "incus", "exec", incus_name, "--", "sh", "-c", f"cd '{image_path}'; for f in *.blame; do (echo \"${{f}}:$(cat ${{f}})\";); done"
         ], capture_output=True, check=True).stdout.decode('utf-8').strip().splitlines()
         for index in range(len(revision)):
-            revision_name = str(revision[index]).removesuffix('.blame')
-            blame = subprocess.run([
-                "incus", "exec", incus_name, "--", "cat", f"{revision_name}.blame"
-            ], check=True, capture_output=True).stdout.decode('utf-8').strip()
-            revision[index] = f"{os.path.basename(revision_name)}   blame: {blame}"
+            revision_data = str(revision[index]).split(':')
+            blame = revision_data.pop()
+            revision_name = ':'.join(revision_data).removesuffix('.blame')
+            revision[index] = f"{revision_name}   blame: {blame}"
         revision = list(reversed(revision))
         for rev in revision:
             print(rev)
