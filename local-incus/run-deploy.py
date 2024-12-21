@@ -19,8 +19,8 @@ except IndexError:
     print("Must have one argument", file=sys.stderr)
     exit(1)
 
-if not image_name.endswith('.squashfs'):
-    print("File must end with .squashfs", file=sys.stderr)
+if not image_name.endswith(".squashfs"):
+    print("Image name must end with '.squashfs'", file=sys.stderr)
     exit(1)
 
 os.chdir(base_dir)

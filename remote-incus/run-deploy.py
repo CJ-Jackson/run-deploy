@@ -22,6 +22,10 @@ except IndexError:
     print("Must have two argument", file=sys.stderr)
     exit(1)
 
+if not image_name.endswith(".squashfs"):
+    print("Image name must end with '.squashfs'", file=sys.stderr)
+    exit(1)
+
 os.chdir(base_dir)
 
 try:
