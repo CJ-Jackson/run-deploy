@@ -2,6 +2,7 @@
 import getpass
 import json
 import os.path
+import pathlib
 import shutil
 import socket
 import subprocess
@@ -85,6 +86,12 @@ else:
     subprocess.run([
         "incus", "file", "push", "--uid", "0", "--gid", "0", to_exec, f"{incus_name}/opt/image/{image_dir}/"
     ], check=True)
+
+# Blame
+pathlib.Path(f"{image_name.removesuffix('.squashfs')}.blame").write_text(f"{getpass.getuser()}@{socket.gethostname()}", 'utf-8')
+subprocess.run([
+    "incus", "file", "push", "--uid", "0", "--gid", "0", f"{image_name.removesuffix('.squashfs')}.blame", f"{incus_name}/opt/image/{image_dir}/"
+], check=True)
 
 # Exec
 subprocess.run([

@@ -2,6 +2,7 @@
 import getpass
 import json
 import os.path
+import pathlib
 import shutil
 import socket
 import subprocess
@@ -11,6 +12,7 @@ import time
 base_dir = ""
 image_name = ""
 minisign_public_key_path = ""
+key_ref = ""
 try:
     target_path = sys.argv[1].strip()
     key_ref = sys.argv[2].strip()
@@ -98,6 +100,12 @@ else:
     subprocess.run([
         "incus", "file", "push", "--uid", "0", "--gid", "0", to_exec, f"{incus_name}/opt/image/{image_dir}/"
     ], check=True)
+
+# Blame
+pathlib.Path(f"{image_name.removesuffix('.squashfs')}.blame").write_text(key_ref, 'utf-8')
+subprocess.run([
+    "incus", "file", "push", "--uid", "0", "--gid", "0", f"{image_name.removesuffix('.squashfs')}.blame", f"{incus_name}/opt/image/{image_dir}/"
+], check=True)
 
 # Exec
 subprocess.run([

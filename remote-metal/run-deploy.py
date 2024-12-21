@@ -2,6 +2,7 @@
 import getpass
 import json
 import os.path
+import pathlib
 import shutil
 import socket
 import subprocess
@@ -85,7 +86,12 @@ if not valid:
 os.rename(image_name, f"/opt/image/{image_dir}/{image_name}")
 
 # Copy Exec (Enforce name convention)
+if getpass.getuser() == "root":
+    os.chown(to_exec, 0, 0)
 os.rename(to_exec, f"/opt/image/{image_dir}/{image_name.removesuffix('.squashfs')}")
+
+# Blame
+pathlib.Path(f"/opt/image/{image_dir}/{image_name.removesuffix('.squashfs')}.blame").write_text(key_ref, 'utf-8')
 
 # Exec
 subprocess.run([
