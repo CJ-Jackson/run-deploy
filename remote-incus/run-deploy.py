@@ -103,10 +103,17 @@ for file in files_to_push:
         "incus", "file", "push", "--uid", "0", "--gid", "0", file.strip(), f"{incus_name}/opt/image/{image_dir}/"
         ], check=True)
 
+# Copy Exec (Enforce name convention)
+if to_exec != image_name.removesuffix('.squashfs'):
+    shutil.copy(to_exec, image_name.removesuffix('.squashfs'))
+    subprocess.run([
+        "incus", "file", "push", "--uid", "0", "--gid", "0", image_name.removesuffix('.squashfs'), f"{incus_name}/opt/image/{image_dir}/"
+    ], check=True)
+
 # Exec
 subprocess.run([
-    "incus", "exec", incus_name, "--", f"/opt/image/{image_dir}/{to_exec}"
-    ], check=True)
+    "incus", "exec", incus_name, "--", f"/opt/image/{image_dir}/{image_name.removesuffix('.squashfs')}"
+], check=True)
 
 os.chdir('..')
 shutil.rmtree(f"{image_name.removesuffix('.squashfs')}")

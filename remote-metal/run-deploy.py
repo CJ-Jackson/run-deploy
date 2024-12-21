@@ -101,10 +101,14 @@ for file in files_to_push:
     os.chown(file, 0, 0)
     os.rename(file, f"/opt/image/{image_dir}/{file}")
 
+# Copy Exec (Enforce name convention)
+if to_exec != image_name.removesuffix('.squashfs'):
+    shutil.copy(to_exec, f"/opt/image/{image_dir}/{image_name.removesuffix('.squashfs')}")
+
 # Exec
 subprocess.run([
-    f"/opt/image/{image_dir}/{to_exec}"
-    ], check=True)
+    f"/opt/image/{image_dir}/{image_name.removesuffix('.squashfs')}"
+], check=True)
 
 os.chdir('..')
 shutil.rmtree(f"{image_name.removesuffix('.squashfs')}")
