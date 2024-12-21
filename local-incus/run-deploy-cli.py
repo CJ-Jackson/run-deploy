@@ -58,7 +58,7 @@ match command_ref:
             exit(2)
         subprocess.run([
             "incus", "exec", incus_name, "--", f"{image_path}/{revision_name}"
-        ])
+        ], check=True)
     case _:
         print(f"Command `{command_ref}` was not found!", file=sys.stderr)
         exit(1)
