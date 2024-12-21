@@ -72,42 +72,31 @@ data = data[socket.gethostname()]
 
 incus_name: str = data['incus-name'].strip()
 image_dir: str = data['image-dir'].strip()
-copy_map: dict = data.get('map', {})
-files_to_push: dict = data['files']
 to_exec: str = data['exec'].strip()
 
 # Sanity check
 valid = True
 if '/' in incus_name or '/' in to_exec or '/' in image_dir:
     valid = False
-for src, dest in copy_map.items():
-    if '/' in src or '/' in dest:
-        valid = False
-for file in files_to_push:
-    if '/' in file or image_dir not in file:
-        valid = False
-if '/' in to_exec:
-    valid = False
 
 if not valid:
-    print("Cannot have '/' in values, also image directory name must also be in file.", file=sys.stderr)
+    print("Cannot have '/' in values, also image directory name must also be in image file.", file=sys.stderr)
     exit(1)
 
-# Copy files
-for src, dest in copy_map.items():
-    shutil.copy(src.strip(), dest.strip())
-
-# Push files
-for file in files_to_push:
-    subprocess.run([
-        "incus", "file", "push", "--uid", "0", "--gid", "0", file.strip(), f"{incus_name}/opt/image/{image_dir}/"
-        ], check=True)
+# Upload Image to Incus container
+subprocess.run([
+    "incus", "file", "push", "--uid", "0", "--gid", "0", image_name, f"{incus_name}/opt/image/{image_dir}/"
+], check=True)
 
 # Copy Exec (Enforce name convention)
 if to_exec != image_name.removesuffix('.squashfs'):
     shutil.copy(to_exec, image_name.removesuffix('.squashfs'))
     subprocess.run([
         "incus", "file", "push", "--uid", "0", "--gid", "0", image_name.removesuffix('.squashfs'), f"{incus_name}/opt/image/{image_dir}/"
+    ], check=True)
+else:
+    subprocess.run([
+        "incus", "file", "push", "--uid", "0", "--gid", "0", to_exec, f"{incus_name}/opt/image/{image_dir}/"
     ], check=True)
 
 # Exec

@@ -70,40 +70,22 @@ with open("push.json", "r", encoding='utf-8') as f:
 data = data[socket.gethostname()]
 
 image_dir: str = data['image-dir'].strip()
-copy_map: dict = data.get('map', {})
-files_to_push: dict = data['files']
 to_exec: str = data['exec'].strip()
 
 # Sanity check
 valid = True
 if '/' in to_exec or '/' in image_dir:
     valid = False
-for src, dest in copy_map.items():
-    if '/' in src or '/' in dest:
-        valid = False
-for file in files_to_push:
-    if '/' in file or image_dir not in file:
-        valid = False
-if '/' in to_exec:
-    valid = False
 
 if not valid:
     print("Cannot have '/' in values, also image directory name must also be in file.", file=sys.stderr)
     exit(1)
 
-# Copy files
-for src, dest in copy_map.items():
-    shutil.copy(src.strip(), dest.strip())
-
-# Push files
-for file in files_to_push:
-    file = file.strip()
-    os.chown(file, 0, 0)
-    os.rename(file, f"/opt/image/{image_dir}/{file}")
+# Move Image to location
+os.rename(image_name, f"/opt/image/{image_dir}/{image_name}")
 
 # Copy Exec (Enforce name convention)
-if to_exec != image_name.removesuffix('.squashfs'):
-    shutil.copy(to_exec, f"/opt/image/{image_dir}/{image_name.removesuffix('.squashfs')}")
+os.rename(to_exec, f"/opt/image/{image_dir}/{image_name.removesuffix('.squashfs')}")
 
 # Exec
 subprocess.run([

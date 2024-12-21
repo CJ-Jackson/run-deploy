@@ -35,7 +35,7 @@ ln -sf {squashfs_name} test.squashfs || exit 1
 """, 'utf-8')
 script_path.chmod(0o755)
 
-script_path = pathlib.Path(f"mnt/_deploy/init_{script_name}")
+script_path = pathlib.Path(f"mnt/_deploy/init_script")
 script_path.write_text(f"""#!/bin/dash
 cd /opt/image/test
 ln -sf {squashfs_name} test.squashfs || exit 1
@@ -47,9 +47,7 @@ manifest_json = {
     hostname: {
         'incus-name': 'test',
         'image-dir': 'test',
-        'map': {f"init_{script_name}": script_name},
-        'files': [script_name, squashfs_name],
-        'exec': script_name
+        'exec': 'init_script'
     }
 }
 
