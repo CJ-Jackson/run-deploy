@@ -61,10 +61,7 @@ match command_ref:
             blame = pathlib.Path(f"{revision_name}.blame").read_text('utf-8')
             revision[index] = f"{os.path.basename(revision_name)}   blame: {blame}"
         revision.sort()
-        try:
-            revision = list(reversed(revision))
-        except IndexError:
-            exit()
+        revision = list(reversed(revision))
         for rev in revision:
             print(rev)
     case "revert":

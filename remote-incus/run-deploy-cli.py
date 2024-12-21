@@ -64,6 +64,7 @@ match command_ref:
             blame = revision_data.pop()
             revision_name = ':'.join(revision_data).removesuffix('.blame')
             revision[index] = f"{revision_name}   blame: {blame}"
+        revision.sort()
         revision = list(reversed(revision))
         for rev in revision:
             print(rev)
