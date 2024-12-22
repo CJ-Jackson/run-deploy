@@ -18,9 +18,15 @@ except IndexError:
     exit(1)
 
 # Get the last deploy
-last_deploy = subprocess.run([
-    "run-deploy-remote-cli", ssh_address, "test", "test", "last-deploy"
-], check=True, capture_output=True).stdout.decode('utf-8').strip()
+last_deploy = ""
+try:
+    last_deploy = subprocess.run([
+        "run-deploy-remote-cli", ssh_address, "test", "test", "last-deploy"
+    ], check=True, capture_output=True).stdout.decode('utf-8').strip()
+except subprocess.CalledProcessError:
+    last_deploy = subprocess.run([
+        "run-deploy-remote-cli", ssh_address, "test", "last-deploy"
+    ], check=True, capture_output=True).stdout.decode('utf-8').strip()
 
 # Create the image
 image_name = subprocess.run([
@@ -34,7 +40,7 @@ subprocess.run([
 
 # Upload the image and the signature
 subprocess.run([
-    "scp", image_name, f"{image_name}.minisig", f"{ssh_address}:/tmp"
+    "scp", image_name, f"{image_name}.minisig", f"{ssh_address}:/tmp/run-deploy"
 ], check=True)
 
 # Use ssh to tell the server to deploy the image, if that fails, it will automatically revert.
@@ -42,7 +48,7 @@ subprocess.run([
 try:
     subprocess.run([
         "ssh", ssh_address, "--", "doas", "/opt/local/bin/run-deploy",
-        f"/tmp/{os.path.basename(image_name)}", f"{getpass.getuser()}@{socket.gethostname()}"
+        f"/tmp/run-deploy/{os.path.basename(image_name)}", f"{getpass.getuser()}@{socket.gethostname()}"
     ], check=True)
 except subprocess.CalledProcessError:
     last_deploy = subprocess.run([

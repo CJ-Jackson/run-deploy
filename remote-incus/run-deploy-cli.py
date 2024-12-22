@@ -9,7 +9,7 @@ try:
     token_ref = os.environ['RUN_DEPLOY_TOKEN'].strip()
     key_ref = os.environ['RUN_DEPLOY_KEY'].strip()
 
-    token_path = f"/tmp/run-deploy-token-{token_ref}"
+    token_path = f"/tmp/run-deploy/run-deploy-token-{token_ref}"
     minisign_public_key_path = f"/opt/local/minisign/{key_ref}.pub"
 except KeyError:
     print("Must have env `RUN_DEPLOY_TOKEN` and `RUN_DEPLOY_KEY`")

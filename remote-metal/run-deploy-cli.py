@@ -10,7 +10,7 @@ try:
     token_ref = os.environ['RUN_DEPLOY_TOKEN'].strip()
     key_ref = os.environ['RUN_DEPLOY_KEY'].strip()
 
-    token_path = f"/tmp/run-deploy-token-{token_ref}"
+    token_path = f"/tmp/run-deploy/run-deploy-token-{token_ref}"
     minisign_public_key_path = f"/opt/local/minisign/{key_ref}.pub"
 except KeyError:
     print("Must have env `RUN_DEPLOY_TOKEN` and `RUN_DEPLOY_KEY`")
@@ -46,21 +46,21 @@ match command_ref:
             print(os.path.basename(os.path.realpath(f"{image_path}/{image_ref}.squashfs")).removesuffix('.squashfs'))
         else:
             print("There isn't a last deploy", file=sys.stderr)
-            exit(1)
+            exit(0)
     case "last-deploy-blame":
         if os.path.exists(f"{image_path}/{image_ref}.squashfs"):
             last_path = os.path.realpath(f"{image_path}/{image_ref}.squashfs").removesuffix('.squashfs')
             print(pathlib.Path(f"{last_path}.blame").read_text('utf-8'))
         else:
             print("There isn't a last deploy", file=sys.stderr)
-            exit(1)
+            exit(0)
     case "list-revision":
         last_path = ""
         if os.path.exists(f"{image_path}/{image_ref}.squashfs"):
             last_path = os.path.basename(os.path.realpath(f"{image_path}/{image_ref}.squashfs")).removesuffix('.squashfs')
         else:
             print("There isn't a last deploy", file=sys.stderr)
-            exit(1)
+            exit(0)
         revision = list(pathlib.Path(image_path).glob(f'*.blame'))
         for index in range(len(revision)):
             revision_name = str(revision[index]).removesuffix('.blame')
