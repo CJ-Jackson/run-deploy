@@ -9,7 +9,7 @@ import tomllib
 
 toml_config = """
 # Which edition to you want to create the installer image for?
-edition = "local-incus"
+edition = "remote-incus"
 
 # User account to create to use for deployment
 deploy_user = "deploy"
@@ -55,8 +55,8 @@ os.chmod("opt/run-deploy/bin/run-deploy-cli", 0o700)
 
 doas = pathlib.Path("opt/run-deploy/etc/doas.conf")
 doas.write_text(f"""
-permit nopass {toml_config['deploy_user']} as root cmd /opt/local/bin/run-deploy
-permit nopass setenv {{ RUN_DEPLOY_TOKEN RUN_DEPLOY_KEY }} {toml_config['deploy_user']} as root cmd /opt/local/bin/run-deploy-cli
+permit nopass {toml_config['deploy_user']} as root cmd /opt/run-deploy/bin/run-deploy
+permit nopass setenv {{ RUN_DEPLOY_TOKEN RUN_DEPLOY_KEY }} {toml_config['deploy_user']} as root cmd /opt/run-deploy/bin/run-deploy-cli
 """.strip(), 'utf-8')
 doas.chmod(0o400)
 
