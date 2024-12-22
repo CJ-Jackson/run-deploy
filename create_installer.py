@@ -18,7 +18,7 @@ deploy_user = "deploy"
 ssh_authorized_keys = []
 """.strip()
 
-toml_config_filename = f"/tmp/run-deploy-installer-config-{time.time()}"
+toml_config_filename = f"/tmp/run-deploy-installer-config-{time.time()}.toml"
 with open(toml_config_filename, "w", encoding="utf-8") as f:
     print(toml_config, file=f)
 
