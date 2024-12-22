@@ -82,6 +82,8 @@ if not valid:
     print("Cannot have '/' in values, also image directory name must also be in file.", file=sys.stderr)
     exit(1)
 
+os.makedirs(f"/opt/run-deploy/image/{image_dir}", exist_ok=True)
+
 # Move Image to location
 os.rename(image_name, f"/opt/run-deploy/image/{image_dir}/{image_name}")
 

@@ -71,6 +71,11 @@ if not valid:
     print("Cannot have '/' in values, also image directory name must also be in image file.", file=sys.stderr)
     exit(1)
 
+# Create directory if not exist
+subprocess.run([
+    "incus", "exec", incus_name, "--", "mkdir", "-p", f"/opt/run-deploy/image/{image_dir}"
+], capture_output=True)
+
 # Upload Image to Incus container
 subprocess.run([
     "incus", "file", "push", "--uid", "0", "--gid", "0", image_name, f"{incus_name}/opt/run-deploy/image/{image_dir}/"
