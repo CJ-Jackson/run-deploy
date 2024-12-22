@@ -29,7 +29,7 @@ squashfs_name = f"{script_name}.squashfs"
 
 script_path = pathlib.Path(f"mnt/_deploy/{script_name}")
 script_path.write_text(f"""#!/bin/dash
-cd /opt/image/test
+cd /opt/run-deploy/image/test
 ln -sf {squashfs_name} test.squashfs || exit 1
 /opt/local/script/deploy/test
 """, 'utf-8')
@@ -37,7 +37,7 @@ script_path.chmod(0o755)
 
 script_path = pathlib.Path(f"mnt/_deploy/init_script")
 script_path.write_text(f"""#!/bin/dash
-cd /opt/image/test
+cd /opt/run-deploy/image/test
 ln -sf {squashfs_name} test.squashfs || exit 1
 echo "Init: {squashfs_name} has been deployed"
 """, 'utf-8')
