@@ -34,7 +34,7 @@ env_key = f"RUN_DEPLOY_KEY='{getpass.getuser()}@{socket.gethostname()}'"
 
 try:
     subprocess.run([
-        "ssh", ssh_address, "--", env_token, env_key, "doas", "/opt/local/bin/run-deploy-cli"
+        "ssh", ssh_address, "--", env_token, env_key, "doas", "/opt/run-deploy/bin/run-deploy-cli"
     ] + sys.argv[2:], check=True)
 except subprocess.CalledProcessError:
     exit(1)

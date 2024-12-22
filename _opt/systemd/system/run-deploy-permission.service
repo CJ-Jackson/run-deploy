@@ -1,0 +1,7 @@
+[Unit]
+Description="Change owner and update permission of deploy file"
+
+[Service]
+User=root
+Type=oneshot
+ExecStart=/opt/run-deploy/script/run-deploy-permission

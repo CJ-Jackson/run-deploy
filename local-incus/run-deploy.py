@@ -26,7 +26,7 @@ if not image_name.endswith(".squashfs"):
 
 os.chdir(base_dir)
 
-mnt_point = f"/tmp/deploy-mount-{time.time()}"
+mnt_point = f"/tmp/run-deploy-mount-{time.time()}"
 os.mkdir(mnt_point, 0o700)
 
 try:
@@ -73,29 +73,29 @@ if not valid:
 
 # Upload Image to Incus container
 subprocess.run([
-    "incus", "file", "push", "--uid", "0", "--gid", "0", image_name, f"{incus_name}/opt/image/{image_dir}/"
+    "incus", "file", "push", "--uid", "0", "--gid", "0", image_name, f"{incus_name}/opt/run-deploy/image/{image_dir}/"
 ], check=True)
 
 # Copy Exec (Enforce name convention)
 if to_exec != image_name.removesuffix('.squashfs'):
     shutil.copy(to_exec, image_name.removesuffix('.squashfs'))
     subprocess.run([
-        "incus", "file", "push", "--uid", "0", "--gid", "0", image_name.removesuffix('.squashfs'), f"{incus_name}/opt/image/{image_dir}/"
+        "incus", "file", "push", "--uid", "0", "--gid", "0", image_name.removesuffix('.squashfs'), f"{incus_name}/opt/run-deploy/image/{image_dir}/"
     ], check=True)
 else:
     subprocess.run([
-        "incus", "file", "push", "--uid", "0", "--gid", "0", to_exec, f"{incus_name}/opt/image/{image_dir}/"
+        "incus", "file", "push", "--uid", "0", "--gid", "0", to_exec, f"{incus_name}/opt/run-deploy/image/{image_dir}/"
     ], check=True)
 
 # Blame
 pathlib.Path(f"{image_name.removesuffix('.squashfs')}.blame").write_text(f"{getpass.getuser()}@{socket.gethostname()}", 'utf-8')
 subprocess.run([
-    "incus", "file", "push", "--uid", "0", "--gid", "0", f"{image_name.removesuffix('.squashfs')}.blame", f"{incus_name}/opt/image/{image_dir}/"
+    "incus", "file", "push", "--uid", "0", "--gid", "0", f"{image_name.removesuffix('.squashfs')}.blame", f"{incus_name}/opt/run-deploy/image/{image_dir}/"
 ], check=True)
 
 # Exec
 subprocess.run([
-    "incus", "exec", incus_name, "--", f"/opt/image/{image_dir}/{image_name.removesuffix('.squashfs')}"
+    "incus", "exec", incus_name, "--", f"/opt/run-deploy/image/{image_dir}/{image_name.removesuffix('.squashfs')}"
 ], check=True)
 
 os.chdir('..')

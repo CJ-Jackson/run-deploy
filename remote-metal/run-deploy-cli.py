@@ -11,7 +11,7 @@ try:
     key_ref = os.environ['RUN_DEPLOY_KEY'].strip()
 
     token_path = f"/tmp/run-deploy/run-deploy-token-{token_ref}"
-    minisign_public_key_path = f"/opt/local/minisign/{key_ref}.pub"
+    minisign_public_key_path = f"/opt/run-deploy/minisign/{key_ref}.pub"
 except KeyError:
     print("Must have env `RUN_DEPLOY_TOKEN` and `RUN_DEPLOY_KEY`")
     exit(3)
@@ -38,7 +38,7 @@ except IndexError:
 if '/' in image_ref:
     print("Image Ref must not have /", file=sys.stderr)
 
-image_path = f"/opt/image/{image_ref}"
+image_path = f"/opt/run-deploy/image/{image_ref}"
 
 match command_ref:
     case "last-deploy":

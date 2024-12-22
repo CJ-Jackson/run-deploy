@@ -1,0 +1,11 @@
+[Unit]
+Description="Create `/tmp/run-deploy` directory, then monitor and update permission."
+
+[Path]
+PathChanged=/tmp/run-deploy
+MakeDirectory=true
+DirectoryMode=0777
+Unit=run-deploy-permission.service
+
+[Install]
+WantedBy=multi-user.target

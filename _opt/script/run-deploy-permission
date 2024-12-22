@@ -1,0 +1,5 @@
+#!/bin/dash
+cd /tmp/run-deploy
+chown root:root run-deploy-token-* *.minisig 2> /dev/null
+chmod 622 run-deploy-token-* *.minisig 2> /dev/null
+exit 0

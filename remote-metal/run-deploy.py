@@ -38,7 +38,7 @@ except subprocess.CalledProcessError:
     os.remove(f"{image_name}.minisig")
     exit(1)
 
-mnt_point = f"/tmp/deploy-mount-{time.time()}"
+mnt_point = f"/tmp/run-deploy-mount-{time.time()}"
 os.mkdir(mnt_point, 0o700)
 
 try:
@@ -83,19 +83,19 @@ if not valid:
     exit(1)
 
 # Move Image to location
-os.rename(image_name, f"/opt/image/{image_dir}/{image_name}")
+os.rename(image_name, f"/opt/run-deploy/image/{image_dir}/{image_name}")
 
 # Copy Exec (Enforce name convention)
 if getpass.getuser() == "root":
     os.chown(to_exec, 0, 0)
-os.rename(to_exec, f"/opt/image/{image_dir}/{image_name.removesuffix('.squashfs')}")
+os.rename(to_exec, f"/opt/run-deploy/image/{image_dir}/{image_name.removesuffix('.squashfs')}")
 
 # Blame
-pathlib.Path(f"/opt/image/{image_dir}/{image_name.removesuffix('.squashfs')}.blame").write_text(key_ref, 'utf-8')
+pathlib.Path(f"/opt/run-deploy/image/{image_dir}/{image_name.removesuffix('.squashfs')}.blame").write_text(key_ref, 'utf-8')
 
 # Exec
 subprocess.run([
-    f"/opt/image/{image_dir}/{image_name.removesuffix('.squashfs')}"
+    f"/opt/run-deploy/image/{image_dir}/{image_name.removesuffix('.squashfs')}"
 ], check=True)
 
 os.chdir('..')

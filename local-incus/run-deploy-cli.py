@@ -17,7 +17,7 @@ except IndexError:
 if '/' in image_ref or '/' in incus_name:
     print("Incus name and image Ref must not have /", file=sys.stderr)
 
-image_path = f"/opt/image/{image_ref}"
+image_path = f"/opt/run-deploy/image/{image_ref}"
 
 match command_ref:
     case "last-deploy":

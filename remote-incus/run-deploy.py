@@ -40,7 +40,7 @@ except subprocess.CalledProcessError:
     exit(1)
 
 
-mnt_point = f"/tmp/deploy-mount-{time.time()}"
+mnt_point = f"/tmp/run-deploy-mount-{time.time()}"
 os.mkdir(mnt_point, 0o700)
 
 try:
