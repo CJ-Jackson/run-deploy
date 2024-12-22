@@ -19,7 +19,7 @@ try:
 
     base_dir = os.path.dirname(target_path)
     image_name = os.path.basename(target_path)
-    minisign_public_key_path = f"/opt/local/minisign/{key_ref}.pub"
+    minisign_public_key_path = f"/opt/run-deploy/minisign/{key_ref}.pub"
 except IndexError:
     print("Must have two argument", file=sys.stderr)
     exit(1)
