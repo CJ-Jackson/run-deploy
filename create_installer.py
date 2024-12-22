@@ -41,6 +41,7 @@ os.chdir(tmp_dir)
 os.mkdir("opt")
 
 shutil.copytree(f"{current_path}/_opt", "opt/run-deploy")
+os.mkdir("opt/run-deploy/image")
 os.mkdir("opt/run-deploy/bin")
 os.mkdir("opt/run-deploy/etc")
 os.mkdir("opt/run-deploy/minisign")
