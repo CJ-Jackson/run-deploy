@@ -79,9 +79,9 @@ systemctl start run-deploy-permission.path
 
 # Add user and harden home directory, and copy authorized_keys
 useradd -m -s /bin/dash {toml_config['deploy_user']}
-chown root:{toml_config['deploy_user']}  /home/{toml_config['deploy_user']} /home/{toml_config['deploy_user']}/* 2> /dev/null
+chown root:{toml_config['deploy_user']}  /home/{toml_config['deploy_user']} /home/{toml_config['deploy_user']}/.* 2> /dev/null
 chmod 750 /home/{toml_config['deploy_user']}
-chmod 640 /home/{toml_config['deploy_user']}/*
+chmod 640 /home/{toml_config['deploy_user']}/.* 2> /dev/null
 mkdir /home/{toml_config['deploy_user']}/.ssh
 chown root:{toml_config['deploy_user']} /home/{toml_config['deploy_user']}/.ssh
 chmod 750 /home/{toml_config['deploy_user']}/.ssh
