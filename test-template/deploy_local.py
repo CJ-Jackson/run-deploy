@@ -20,7 +20,7 @@ image_name = subprocess.run([
 
 # Deploy the image
 subprocess.run([
-    "/opt/local/bin/run-deploy", image_name
+    "/opt/run-deploy/bin/run-deploy", image_name
 ], check=True)
 
 shutil.rmtree(os.path.dirname(image_name))

@@ -47,7 +47,7 @@ subprocess.run([
 # `username@hostname` is for the server to cherry pick the correct public key.
 try:
     subprocess.run([
-        "ssh", ssh_address, "--", "doas", "/opt/local/bin/run-deploy",
+        "ssh", ssh_address, "--", "doas", "/opt/run-deploy/bin/run-deploy",
         f"/tmp/run-deploy/{os.path.basename(image_name)}", f"{getpass.getuser()}@{socket.gethostname()}"
     ], check=True)
 except subprocess.CalledProcessError:
