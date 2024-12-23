@@ -28,7 +28,7 @@ except subprocess.CalledProcessError:
 
 parser = argparse.ArgumentParser(description='Queries and operate run-deploy system')
 
-parser.add_argument('command')
+parser.add_argument('command', help="Possible commands: edition, last-deploy, last-deploy-blame, list-revision and revert")
 parser.add_argument('--incus')
 parser.add_argument('--image')
 parser.add_argument('--revision')
@@ -60,6 +60,8 @@ def get_image_path():
     return f"/opt/run-deploy/image/{image_ref}"
 
 match command_ref:
+    case "edition":
+        print("remote-incus")
     case "last-deploy":
         validate_input_image_incus()
         image_path = get_image_path()
