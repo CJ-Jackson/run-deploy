@@ -9,6 +9,7 @@ import tomllib
 
 toml_config = """
 # Which edition to you want to create the installer image for?
+# ( remote-incus, remote-metal )
 edition = "remote-incus"
 
 # User account to create to use for deployment
