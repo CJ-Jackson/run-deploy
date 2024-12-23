@@ -112,11 +112,12 @@ subprocess.run([
     "incus", "file", "push", "--uid", "0", "--gid", "0", f"{image_name.removesuffix('.squashfs')}.blame", f"{incus_name}/opt/run-deploy/image/{image_dir}/"
 ], check=True)
 
+# Clean up
+os.chdir('..')
+shutil.rmtree(f"{image_name.removesuffix('.squashfs')}")
+os.rmdir(mnt_point)
+
 # Exec
 subprocess.run([
     "incus", "exec", incus_name, "--", f"/opt/run-deploy/image/{image_dir}/{image_name.removesuffix('.squashfs')}"
 ], check=True)
-
-os.chdir('..')
-shutil.rmtree(f"{image_name.removesuffix('.squashfs')}")
-os.rmdir(mnt_point)

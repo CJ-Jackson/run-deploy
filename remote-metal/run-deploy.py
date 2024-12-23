@@ -95,11 +95,12 @@ shutil.move(to_exec, f"/opt/run-deploy/image/{image_dir}/{image_name.removesuffi
 # Blame
 pathlib.Path(f"/opt/run-deploy/image/{image_dir}/{image_name.removesuffix('.squashfs')}.blame").write_text(key_ref, 'utf-8')
 
+# Clean up
+os.chdir('..')
+shutil.rmtree(f"{image_name.removesuffix('.squashfs')}")
+os.rmdir(mnt_point)
+
 # Exec
 subprocess.run([
     f"/opt/run-deploy/image/{image_dir}/{image_name.removesuffix('.squashfs')}"
 ], check=True)
-
-os.chdir('..')
-shutil.rmtree(f"{image_name.removesuffix('.squashfs')}")
-os.rmdir(mnt_point)
