@@ -85,12 +85,12 @@ if not valid:
 os.makedirs(f"/opt/run-deploy/image/{image_dir}", exist_ok=True)
 
 # Move Image to location
-os.rename(image_name, f"/opt/run-deploy/image/{image_dir}/{image_name}")
+shutil.move(image_name, f"/opt/run-deploy/image/{image_dir}/{image_name}")
 
 # Copy Exec (Enforce name convention)
 if getpass.getuser() == "root":
     os.chown(to_exec, 0, 0)
-os.rename(to_exec, f"/opt/run-deploy/image/{image_dir}/{image_name.removesuffix('.squashfs')}")
+shutil.move(to_exec, f"/opt/run-deploy/image/{image_dir}/{image_name.removesuffix('.squashfs')}")
 
 # Blame
 pathlib.Path(f"/opt/run-deploy/image/{image_dir}/{image_name.removesuffix('.squashfs')}.blame").write_text(key_ref, 'utf-8')
