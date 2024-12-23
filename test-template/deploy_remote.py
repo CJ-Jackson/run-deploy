@@ -21,11 +21,11 @@ except IndexError:
 last_deploy = ""
 try:
     last_deploy = subprocess.run([
-        "run-deploy-remote-cli", ssh_address, "test", "test", "last-deploy"
+        "run-deploy-remote-cli", ssh_address, "last-deploy", "--incus", "test", "--image", "test",
     ], check=True, capture_output=True).stdout.decode('utf-8').strip()
 except subprocess.CalledProcessError:
     last_deploy = subprocess.run([
-        "run-deploy-remote-cli", ssh_address, "test", "last-deploy"
+        "run-deploy-remote-cli", ssh_address, "last-deploy", "--image", "test",
     ], check=True, capture_output=True).stdout.decode('utf-8').strip()
 
 # Create the image
@@ -51,9 +51,14 @@ try:
         f"/tmp/run-deploy/{os.path.basename(image_name)}", f"{getpass.getuser()}@{socket.gethostname()}"
     ], check=True)
 except subprocess.CalledProcessError:
-    last_deploy = subprocess.run([
-        "run-deploy-remote-cli", ssh_address, "test", "test", "revert", last_deploy
-    ], check=True)
+    try:
+        last_deploy = subprocess.run([
+            "run-deploy-remote-cli", ssh_address, "revert", "--incus", "test", "--image", "test", "--revision", last_deploy
+        ], check=True)
+    except subprocess.CalledProcessError:
+        last_deploy = subprocess.run([
+            "run-deploy-remote-cli", ssh_address, "revert", "--image", "test", "--revision", last_deploy
+        ], check=True)
 
 # Finally remove the image from tmp.
 shutil.rmtree(os.path.dirname(image_name))
