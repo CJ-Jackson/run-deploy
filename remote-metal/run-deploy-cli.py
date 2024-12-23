@@ -29,7 +29,8 @@ except subprocess.CalledProcessError:
 
 parser = argparse.ArgumentParser(description='Queries and operate run-deploy system')
 
-parser.add_argument('command', help="Possible commands: edition, last-deploy, last-deploy-blame, list-revision and revert")
+parser.add_argument('command',
+                    help="Possible commands: edition, last-deploy, last-deploy-blame, list-revision and revert")
 parser.add_argument('--image')
 parser.add_argument('--revision')
 
@@ -39,6 +40,7 @@ image_ref = args.image
 command_ref = args.command
 revision_name = args.revision
 
+
 def validate_input_image():
     if image_ref is None:
         print(f"'--image' is required for command: {command_ref}", file=sys.stderr)
@@ -46,6 +48,7 @@ def validate_input_image():
     if '/' in image_ref:
         print("'--image' must not have /", file=sys.stderr)
         exit(1)
+
 
 def validate_input_revision():
     if revision_name is None:
@@ -55,8 +58,10 @@ def validate_input_revision():
         print("'--revision' must not have /", file=sys.stderr)
         exit(1)
 
+
 def get_image_path():
     return f"/opt/run-deploy/image/{image_ref}"
+
 
 match command_ref:
     case "edition":
@@ -83,7 +88,8 @@ match command_ref:
         image_path = get_image_path()
         last_path = ""
         if os.path.exists(f"{image_path}/{image_ref}.squashfs"):
-            last_path = os.path.basename(os.path.realpath(f"{image_path}/{image_ref}.squashfs")).removesuffix('.squashfs')
+            last_path = os.path.basename(os.path.realpath(f"{image_path}/{image_ref}.squashfs")).removesuffix(
+                '.squashfs')
         else:
             print("There isn't a last deploy", file=sys.stderr)
             exit(0)
