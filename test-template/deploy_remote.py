@@ -17,13 +17,18 @@ except IndexError:
     print("Need server hostname and ssh address", file=sys.stderr)
     exit(1)
 
+# Get the edition
+edition = subprocess.run([
+    "run-deploy-remote-cli", ssh_address, "edition"
+], check=True, capture_output=True).stdout.decode('utf-8').strip()
+
 # Get the last deploy
 last_deploy = ""
-try:
+if edition == "remote-incus":
     last_deploy = subprocess.run([
         "run-deploy-remote-cli", ssh_address, "last-deploy", "--incus", "test", "--image", "test",
     ], check=True, capture_output=True).stdout.decode('utf-8').strip()
-except subprocess.CalledProcessError:
+else:
     last_deploy = subprocess.run([
         "run-deploy-remote-cli", ssh_address, "last-deploy", "--image", "test",
     ], check=True, capture_output=True).stdout.decode('utf-8').strip()
@@ -51,11 +56,11 @@ try:
         f"/tmp/run-deploy/{os.path.basename(image_name)}", f"{getpass.getuser()}@{socket.gethostname()}"
     ], check=True)
 except subprocess.CalledProcessError:
-    try:
+    if edition == "remote-incus":
         last_deploy = subprocess.run([
             "run-deploy-remote-cli", ssh_address, "revert", "--incus", "test", "--image", "test", "--revision", last_deploy
         ], check=True)
-    except subprocess.CalledProcessError:
+    else:
         last_deploy = subprocess.run([
             "run-deploy-remote-cli", ssh_address, "revert", "--image", "test", "--revision", last_deploy
         ], check=True)
