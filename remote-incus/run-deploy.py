@@ -62,7 +62,7 @@ shutil.copytree(f"{mnt_point}/_deploy", image_name.removesuffix('.squashfs'))
 subprocess.run(["umount", mnt_point])
 if getpass.getuser() == "root":
     os.chown(image_name, 0, 0)
-os.rename(image_name, f"{image_name.removesuffix('.squashfs')}/{image_name}")
+shutil.move(image_name, f"{image_name.removesuffix('.squashfs')}/{image_name}")
 
 os.chdir(image_name.removesuffix('.squashfs'))
 
