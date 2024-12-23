@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import argparse
 import os.path
 import pathlib
 import subprocess
@@ -26,28 +27,49 @@ except subprocess.CalledProcessError:
     os.remove(f"{token_path}.minisig")
     exit(5)
 
-image_ref = ""
-command_ref = ""
-try:
-    image_ref = sys.argv[1]
-    command_ref = sys.argv[2]
-except IndexError:
-    print("Must have incus_name, image_ref and command_ref", file=sys.stderr)
-    exit(1)
+parser = argparse.ArgumentParser(description='Queries and operate run-deploy system')
 
-if '/' in image_ref:
-    print("Image Ref must not have /", file=sys.stderr)
+parser.add_argument('command')
+parser.add_argument('--image')
+parser.add_argument('--revision')
 
-image_path = f"/opt/run-deploy/image/{image_ref}"
+args = parser.parse_args()
+
+image_ref = args.image
+command_ref = args.command
+revision_name = args.revision
+
+def validate_input_image():
+    if image_ref is None:
+        print(f"'--image' is required for command: {command_ref}", file=sys.stderr)
+        exit(1)
+    if '/' in image_ref:
+        print("'--image' must not have /", file=sys.stderr)
+        exit(1)
+
+def validate_input_revision():
+    if revision_name is None:
+        print(f"'--revision' is required for command: {command_ref}", file=sys.stderr)
+        exit(1)
+    if '/' in revision_name:
+        print("'--revision' must not have /", file=sys.stderr)
+        exit(1)
+
+def get_image_path():
+    return f"/opt/run-deploy/image/{image_ref}"
 
 match command_ref:
     case "last-deploy":
+        validate_input_image()
+        image_path = get_image_path()
         if os.path.exists(f"{image_path}/{image_ref}.squashfs"):
             print(os.path.basename(os.path.realpath(f"{image_path}/{image_ref}.squashfs")).removesuffix('.squashfs'))
         else:
             print("There isn't a last deploy", file=sys.stderr)
             exit(0)
     case "last-deploy-blame":
+        validate_input_image()
+        image_path = get_image_path()
         if os.path.exists(f"{image_path}/{image_ref}.squashfs"):
             last_path = os.path.realpath(f"{image_path}/{image_ref}.squashfs").removesuffix('.squashfs')
             print(pathlib.Path(f"{last_path}.blame").read_text('utf-8'))
@@ -55,6 +77,8 @@ match command_ref:
             print("There isn't a last deploy", file=sys.stderr)
             exit(0)
     case "list-revision":
+        validate_input_image()
+        image_path = get_image_path()
         last_path = ""
         if os.path.exists(f"{image_path}/{image_ref}.squashfs"):
             last_path = os.path.basename(os.path.realpath(f"{image_path}/{image_ref}.squashfs")).removesuffix('.squashfs')
@@ -75,15 +99,9 @@ match command_ref:
         for rev in revision:
             print(rev)
     case "revert":
-        revision_name = ""
-        try:
-            revision_name = sys.argv[3]
-        except IndexError:
-            print("Must have revision name", file=sys.stderr)
-            exit(2)
-        if '/' in revision_name:
-            print("Revision name must not have /", file=sys.stderr)
-            exit(2)
+        validate_input_image()
+        validate_input_revision()
+        image_path = get_image_path()
         subprocess.run([
             f"{image_path}/{revision_name}"
         ], check=True)

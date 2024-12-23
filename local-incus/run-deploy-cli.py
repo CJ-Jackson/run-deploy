@@ -1,31 +1,53 @@
 #!/usr/bin/env python3
+import argparse
 import os.path
 import subprocess
 import sys
 
-incus_name = ""
-image_ref = ""
-command_ref = ""
-try:
-    incus_name = sys.argv[1]
-    image_ref = sys.argv[2]
-    command_ref = sys.argv[3]
-except IndexError:
-    print("Must have incus_name, image_ref and command_ref", file=sys.stderr)
-    exit(1)
+parser = argparse.ArgumentParser(description='Queries and operate run-deploy system')
 
-if '/' in image_ref or '/' in incus_name:
-    print("Incus name and image Ref must not have /", file=sys.stderr)
+parser.add_argument('command')
+parser.add_argument('--incus')
+parser.add_argument('--image')
+parser.add_argument('--revision')
 
-image_path = f"/opt/run-deploy/image/{image_ref}"
+args = parser.parse_args()
+
+incus_name = args.incus
+image_ref = args.image
+command_ref = args.command
+revision_name = args.revision
+
+def validate_input_image_incus():
+    if image_ref is None or incus_name is None:
+        print(f"'--incus' and '--image' are required for command: {command_ref}", file=sys.stderr)
+        exit(1)
+    if '/' in image_ref or '/' in incus_name:
+        print("'--incus' and '--image' must not have /", file=sys.stderr)
+        exit(1)
+
+def validate_input_revision():
+    if revision_name is None:
+        print(f"'--revision' is required for command: {command_ref}", file=sys.stderr)
+        exit(1)
+    if '/' in revision_name:
+        print("'--revision' must not have /", file=sys.stderr)
+        exit(1)
+
+def get_image_path():
+    return f"/opt/run-deploy/image/{image_ref}"
 
 match command_ref:
     case "last-deploy":
+        validate_input_image_incus()
+        image_path = get_image_path()
         last_path = subprocess.run([
             "incus", "exec", incus_name, "--cwd", image_path, "--", "realpath", f"{image_ref}.squashfs"
         ], capture_output=True, check=True).stdout.decode('utf-8').strip().removesuffix('.squashfs')
         print(os.path.basename(last_path))
     case "last-deploy-blame":
+        validate_input_image_incus()
+        image_path = get_image_path()
         last_path = subprocess.run([
             "incus", "exec", incus_name, "--cwd", image_path, "--", "realpath", f"{image_ref}.squashfs"
         ], capture_output=True, check=True).stdout.decode('utf-8').strip().removesuffix('.squashfs')
@@ -34,6 +56,8 @@ match command_ref:
         ], capture_output=True, check=True).stdout.decode('utf-8').strip()
         print(blame)
     case "list-revision":
+        validate_input_image_incus()
+        image_path = get_image_path()
         last_path = subprocess.run([
             "incus", "exec", incus_name, "--cwd", image_path, "--", "realpath", f"{image_ref}.squashfs"
         ], capture_output=True, check=True).stdout.decode('utf-8').strip().removesuffix('.squashfs')
@@ -54,15 +78,9 @@ match command_ref:
         for rev in revision:
             print(rev)
     case "revert":
-        revision_name = ""
-        try:
-            revision_name = sys.argv[4]
-        except IndexError:
-            print("Must have revision name", file=sys.stderr)
-            exit(2)
-        if '/' in revision_name:
-            print("Revision name must not have /", file=sys.stderr)
-            exit(2)
+        validate_input_image_incus()
+        validate_input_revision()
+        image_path = get_image_path()
         subprocess.run([
             "incus", "exec", incus_name, "--", f"{image_path}/{revision_name}"
         ], check=True)
