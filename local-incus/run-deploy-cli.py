@@ -6,7 +6,8 @@ import sys
 
 parser = argparse.ArgumentParser(description='Queries and operate run-deploy system')
 
-parser.add_argument('command', help="Possible commands: edition, last-deploy, last-deploy-blame, list-revision and revert")
+parser.add_argument('command',
+                    help="Possible commands: edition, last-deploy, last-deploy-blame, list-revision and revert")
 parser.add_argument('--incus')
 parser.add_argument('--image')
 parser.add_argument('--revision')
@@ -18,6 +19,7 @@ image_ref = args.image
 command_ref = args.command
 revision_name = args.revision
 
+
 def validate_input_image_incus():
     if image_ref is None or incus_name is None:
         print(f"'--incus' and '--image' are required for command: {command_ref}", file=sys.stderr)
@@ -25,6 +27,7 @@ def validate_input_image_incus():
     if '/' in image_ref or '/' in incus_name:
         print("'--incus' and '--image' must not have /", file=sys.stderr)
         exit(1)
+
 
 def validate_input_revision():
     if revision_name is None:
@@ -34,8 +37,10 @@ def validate_input_revision():
         print("'--revision' must not have /", file=sys.stderr)
         exit(1)
 
+
 def get_image_path():
     return f"/opt/run-deploy/image/{image_ref}"
+
 
 match command_ref:
     case "edition":
@@ -65,7 +70,8 @@ match command_ref:
         ], capture_output=True, check=True).stdout.decode('utf-8').strip().removesuffix('.squashfs')
         last_path = os.path.basename(last_path)
         revision = subprocess.run([
-            "incus", "exec", incus_name, "--cwd", image_path, "--", "sh", "-c", "for f in *.blame; do (echo \"${f}:$(cat ${f})\";); done"
+            "incus", "exec", incus_name, "--cwd", image_path, "--", "sh", "-c",
+            "for f in *.blame; do (echo \"${f}:$(cat ${f})\";); done"
         ], capture_output=True, check=True).stdout.decode('utf-8').strip().splitlines()
         for index in range(len(revision)):
             revision_data = str(revision[index]).split(':')
