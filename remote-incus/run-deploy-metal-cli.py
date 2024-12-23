@@ -1,0 +1,1 @@
+../remote-metal/run-deploy-cli.py

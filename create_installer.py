@@ -48,10 +48,10 @@ os.mkdir("opt/run-deploy/minisign")
 os.mkdir("opt/run-deploy/ssh")
 os.mkdir("opt/run-deploy/script/deploy")
 
-shutil.copy(f"{current_path}/{toml_config['edition']}/run-deploy.py", "opt/run-deploy/bin/run-deploy")
-shutil.copy(f"{current_path}/{toml_config['edition']}/run-deploy-cli.py", "opt/run-deploy/bin/run-deploy-cli")
-os.chmod("opt/run-deploy/bin/run-deploy", 0o700)
-os.chmod("opt/run-deploy/bin/run-deploy-cli", 0o700)
+for run_deploy_path in pathlib.Path(f"{current_path}/{toml_config['edition']}").glob('*.py'):
+    run_deploy_path = str(run_deploy_path)
+    shutil.copy(run_deploy_path, f"opt/run-deploy/bin/{run_deploy_path.removesuffix('.py')}")
+    os.chmod(f"opt/run-deploy/bin/{run_deploy_path.removesuffix('.py')}", 0o700)
 
 doas = pathlib.Path("opt/run-deploy/etc/doas.conf")
 doas.write_text(f"""
