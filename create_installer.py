@@ -50,8 +50,9 @@ os.mkdir("opt/run-deploy/script/deploy")
 
 for run_deploy_path in pathlib.Path(f"{current_path}/{toml_config['edition']}").glob('*.py'):
     run_deploy_path = str(run_deploy_path)
-    shutil.copy(run_deploy_path, f"opt/run-deploy/bin/{run_deploy_path.removesuffix('.py')}")
-    os.chmod(f"opt/run-deploy/bin/{run_deploy_path.removesuffix('.py')}", 0o700)
+    run_deploy_target_path = f"opt/run-deploy/bin/{os.path.basename(run_deploy_path).removesuffix('.py')}"
+    shutil.copy(run_deploy_path, run_deploy_target_path)
+    os.chmod(run_deploy_target_path, 0o700)
 
 doas = pathlib.Path("opt/run-deploy/etc/doas.conf")
 doas.write_text(f"""
@@ -62,8 +63,7 @@ doas.chmod(0o400)
 
 update = pathlib.Path("update.sh")
 update.write_text("""#!/bin/dash
-cp -p opt/run-deploy/bin/run-deploy /opt/run-deploy/bin/run-deploy
-cp -p opt/run-deploy/bin/run-deploy-cli /opt/run-deploy/bin/run-deploy-cli
+cp -p opt/run-deploy/bin/* /opt/run-deploy/bin
 """, 'utf-8')
 update.chmod(0o755)
 
