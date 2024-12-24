@@ -34,6 +34,7 @@ parser = argparse.ArgumentParser(description='Queries and operate run-deploy sys
 
 command_arg_list = ', '.join([
     'edition',
+    'exec',
     'last-deploy',
     'last-deploy-blame',
     'list-revision',
@@ -51,12 +52,14 @@ image_flag_list = ', '.join([
 parser.add_argument('--image',
                     help=f"Required for: {image_flag_list}")
 parser.add_argument('--revision', help="Required for: revert")
+parser.add_argument('--exec', help="Required for: exec")
 
 args = parser.parse_args()
 
 image_ref = args.image
 command_ref = args.command
 revision_name = args.revision
+exec_cmd = args.exec
 
 
 def validate_input_image():
@@ -74,6 +77,14 @@ def validate_input_revision():
         exit(102)
     if '/' in revision_name:
         print("'--revision' must not have /", file=sys.stderr)
+        exit(102)
+
+def validate_input_exec():
+    if exec_cmd is None:
+        print(f"'--exec' is required for command: {command_ref}", file=sys.stderr)
+        exit(102)
+    if '/' in exec_cmd:
+        print("'--exec' must not have /", file=sys.stderr)
         exit(102)
 
 
@@ -199,6 +210,15 @@ match command_ref:
         images.sort()
         for image in images:
             print(os.path.basename(image))
+    case "exec":
+        validate_input_exec()
+        Permission.create().must_be_admin()
+        try:
+            subprocess.run([
+                f"/opt/run-deploy/exec/{exec_cmd}"
+            ], check=True)
+        except subprocess.CalledProcessError as e:
+            exit(e.returncode)
     case _:
         print(f"Command `{command_ref}` was not found!", file=sys.stderr)
         exit(103)

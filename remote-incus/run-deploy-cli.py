@@ -44,6 +44,7 @@ parser.add_argument('command',
                     help=f"Commands: {command_arg_list}")
 
 incus_flag_list = ', '.join([
+    'exec'
     'last-deploy',
     'last-deploy-blame',
     'list-revision',
@@ -61,6 +62,7 @@ image_flag_list = ', '.join([
 parser.add_argument('--image',
                     help=f"Required for: {image_flag_list}")
 parser.add_argument('--revision', help="Required for: revert")
+parser.add_argument('--exec', help="Required for: exec")
 
 args = parser.parse_args()
 
@@ -68,6 +70,7 @@ incus_name = args.incus
 image_ref = args.image
 command_ref = args.command
 revision_name = args.revision
+exec_cmd = args.exec
 
 
 def validate_input_image_incus():
@@ -85,6 +88,15 @@ def validate_input_incus():
         exit(102)
     if '/' in incus_name:
         print("'--incus' must not have /", file=sys.stderr)
+        exit(102)
+
+
+def validate_input_exec():
+    if exec_cmd is None:
+        print(f"'--exec' is required for command: {command_ref}", file=sys.stderr)
+        exit(102)
+    if '/' in exec_cmd:
+        print("'--exec' must not have /", file=sys.stderr)
         exit(102)
 
 
@@ -236,6 +248,16 @@ match command_ref:
                 print(image)
         except subprocess.CalledProcessError:
             print("")
+    case "exec":
+        validate_input_incus()
+        validate_input_exec()
+        Permission.create().must_be_admin()
+        try:
+            subprocess.run([
+                "incus", "exec", incus_name, "--", f"/opt/run-deploy/exec/{exec_cmd}"
+            ], check=True)
+        except subprocess.CalledProcessError as e:
+            exit(e.returncode)
     case _:
         print(f"Command `{command_ref}` was not found!", file=sys.stderr)
         exit(103)
