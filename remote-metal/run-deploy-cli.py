@@ -217,6 +217,9 @@ match command_ref:
             ], check=True)
         except FileNotFoundError:
             exit(0)
+        except PermissionError as e:
+            print("Permission Error", file=sys.stderr)
+            exit(13)
         except subprocess.CalledProcessError as e:
             exit(e.returncode)
     case _:
