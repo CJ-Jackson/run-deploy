@@ -62,7 +62,7 @@ image_flag_list = ', '.join([
 parser.add_argument('--image',
                     help=f"Required for: {image_flag_list}")
 parser.add_argument('--revision', help="Required for: revert")
-parser.add_argument('--exec', help="Required for: exec")
+parser.add_argument('--cmd', help="Required for: exec")
 
 args = parser.parse_args()
 
