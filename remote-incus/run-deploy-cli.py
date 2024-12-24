@@ -33,6 +33,7 @@ parser = argparse.ArgumentParser(description='Queries and operate run-deploy sys
 
 command_arg_list = ', '.join([
     'edition',
+    'exec',
     'last-deploy',
     'last-deploy-blame',
     'list-revision',
