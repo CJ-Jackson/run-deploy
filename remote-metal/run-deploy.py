@@ -85,6 +85,7 @@ if not valid:
     print("Cannot have '/' in values, also image directory name must also be in file.", file=sys.stderr)
     exit(1002)
 
+
 @dataclass(frozen=True)
 class Permission:
     full: bool
@@ -127,6 +128,7 @@ class Permission:
                 f"You don't have full permission for deploy.( image: {image_dir} )", file=sys.stderr)
             exit(101)
 
+
 Permission.create().must_be_full()
 
 os.makedirs(f"/opt/run-deploy/image/{image_dir}", exist_ok=True)
@@ -140,7 +142,8 @@ if getpass.getuser() == "root":
 shutil.move(to_exec, f"/opt/run-deploy/image/{image_dir}/{image_name.removesuffix('.squashfs')}")
 
 # Blame
-pathlib.Path(f"/opt/run-deploy/image/{image_dir}/{image_name.removesuffix('.squashfs')}.blame").write_text(key_ref, 'utf-8')
+pathlib.Path(f"/opt/run-deploy/image/{image_dir}/{image_name.removesuffix('.squashfs')}.blame").write_text(key_ref,
+                                                                                                           'utf-8')
 
 # Clean up
 os.chdir('..')

@@ -105,7 +105,8 @@ class Permission:
 
     def must_be_admin(self):
         if not self.admin:
-            print(f"You must be admin for command: {command_ref} ( container: {incus_name}, image: {image_ref} )", file=sys.stderr)
+            print(f"You must be admin for command: {command_ref} ( container: {incus_name}, image: {image_ref} )",
+                  file=sys.stderr)
             exit(101)
 
     def must_be_full(self):
@@ -113,7 +114,8 @@ class Permission:
             return
         if not self.full:
             print(
-                f"You don't have full permission for command: {command_ref} ( container: {incus_name}, image: {image_ref} )", file=sys.stderr)
+                f"You don't have full permission for command: {command_ref} ( container: {incus_name}, image: {image_ref} )",
+                file=sys.stderr)
             exit(101)
 
     def must_be_read(self):

@@ -42,7 +42,6 @@ except subprocess.CalledProcessError:
     os.remove(f"{image_name}.minisig")
     exit(107)
 
-
 mnt_point = f"/tmp/run-deploy-mount-{time.time()}"
 os.mkdir(mnt_point, 0o700)
 
@@ -88,6 +87,7 @@ if not valid:
     print("Cannot have '/' in values, also image directory name must also be in image file.", file=sys.stderr)
     exit(1002)
 
+
 @dataclass(frozen=True)
 class Permission:
     full: bool
@@ -127,8 +127,10 @@ class Permission:
             return
         if not self.full:
             print(
-                f"You don't have full permission for deploy.( container: {incus_name}, image: {image_dir} )", file=sys.stderr)
+                f"You don't have full permission for deploy.( container: {incus_name}, image: {image_dir} )",
+                file=sys.stderr)
             exit(101)
+
 
 Permission.create().must_be_full()
 
@@ -146,7 +148,8 @@ subprocess.run([
 if to_exec != image_name.removesuffix('.squashfs'):
     shutil.copy(to_exec, image_name.removesuffix('.squashfs'))
     subprocess.run([
-        "incus", "file", "push", "--uid", "0", "--gid", "0", image_name.removesuffix('.squashfs'), f"{incus_name}/opt/run-deploy/image/{image_dir}/"
+        "incus", "file", "push", "--uid", "0", "--gid", "0", image_name.removesuffix('.squashfs'),
+        f"{incus_name}/opt/run-deploy/image/{image_dir}/"
     ], check=True)
 else:
     subprocess.run([
@@ -156,7 +159,8 @@ else:
 # Blame
 pathlib.Path(f"{image_name.removesuffix('.squashfs')}.blame").write_text(key_ref, 'utf-8')
 subprocess.run([
-    "incus", "file", "push", "--uid", "0", "--gid", "0", f"{image_name.removesuffix('.squashfs')}.blame", f"{incus_name}/opt/run-deploy/image/{image_dir}/"
+    "incus", "file", "push", "--uid", "0", "--gid", "0", f"{image_name.removesuffix('.squashfs')}.blame",
+    f"{incus_name}/opt/run-deploy/image/{image_dir}/"
 ], check=True)
 
 # Clean up
