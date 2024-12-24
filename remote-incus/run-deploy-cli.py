@@ -94,11 +94,15 @@ class Permission:
         if image_ref is None or incus_name is None:
             return cls(full=False, read=overall_read_access)
 
+        incus_full_access = permission.get('incus-full-access', False)
+        incus_read_access = permission.get('incus-read-access', False)
+
         image_permission = permission.get("incus", {}).get(incus_name, {})
-        if image_permission.get("full-access", False):
+        if incus_full_access or image_permission.get("full-access", False):
             return cls(full=True, read=True)
         full = image_ref in image_permission.get("permit", [])
-        read = overall_read_access or image_permission.get("read-access", False) or image_ref in image_permission.get(
+        read = incus_read_access or overall_read_access or image_permission.get("read-access",
+                                                                                False) or image_ref in image_permission.get(
             "permit-read", [])
 
         return cls(full=full, read=read)

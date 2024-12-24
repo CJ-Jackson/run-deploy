@@ -110,8 +110,10 @@ class Permission:
         if permission.get("full-access", False):
             return cls(full=True)
 
+        incus_full_access = permission.get('incus-full-access', False)
+
         image_permission = permission.get("incus", {}).get(incus_name, {})
-        if image_permission.get("full-access", False):
+        if incus_full_access or image_permission.get("full-access", False):
             return cls(full=True)
         full = image_dir in image_permission.get("permit", [])
 

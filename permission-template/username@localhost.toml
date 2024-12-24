@@ -5,6 +5,9 @@ banned = false
 full-access = false
 read-access = false
 
+incus-full-access = false
+incus-read-access = false
+
 [metal]
 full-acesss = false
 # permit full access to image names
