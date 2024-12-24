@@ -58,6 +58,7 @@ def validate_input_incus():
         print("'--incus' must not have /", file=sys.stderr)
         exit(102)
 
+
 def validate_input_revision():
     if revision_name is None:
         print(f"'--revision' is required for command: {command_ref}", file=sys.stderr)
