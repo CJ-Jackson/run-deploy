@@ -33,9 +33,9 @@ parser = argparse.ArgumentParser(description='Queries and operate run-deploy sys
 
 parser.add_argument('command',
                     help="Possible commands: edition, last-deploy, last-deploy-blame, list-revision, revert, incus-list and image-list")
-parser.add_argument('--incus')
-parser.add_argument('--image')
-parser.add_argument('--revision')
+parser.add_argument('--incus', help="Required for: last-deploy, last-deploy-blame, list-revision, revert and image-list")
+parser.add_argument('--image', help="Required for: last-deploy, last-deploy-blame, list-revision and revert")
+parser.add_argument('--revision', help="Required for: revert")
 
 args = parser.parse_args()
 
