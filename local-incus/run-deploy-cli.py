@@ -23,27 +23,27 @@ revision_name = args.revision
 def validate_input_image_incus():
     if image_ref is None or incus_name is None:
         print(f"'--incus' and '--image' are required for command: {command_ref}", file=sys.stderr)
-        exit(1002)
+        exit(102)
     if '/' in image_ref or '/' in incus_name:
         print("'--incus' and '--image' must not have /", file=sys.stderr)
-        exit(1002)
+        exit(102)
 
 
 def validate_input_incus():
     if incus_name is None:
         print(f"'--incus' is required for command: {command_ref}", file=sys.stderr)
-        exit(1002)
+        exit(102)
     if '/' in incus_name:
         print("'--incus' must not have /", file=sys.stderr)
-        exit(1002)
+        exit(102)
 
 def validate_input_revision():
     if revision_name is None:
         print(f"'--revision' is required for command: {command_ref}", file=sys.stderr)
-        exit(1002)
+        exit(102)
     if '/' in revision_name:
         print("'--revision' must not have /", file=sys.stderr)
-        exit(1002)
+        exit(102)
 
 
 def get_image_path():
@@ -117,4 +117,4 @@ match command_ref:
             print("")
     case _:
         print(f"Command `{command_ref}` was not found!", file=sys.stderr)
-        exit(1003)
+        exit(103)

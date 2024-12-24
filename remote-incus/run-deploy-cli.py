@@ -57,10 +57,10 @@ def validate_input_image_incus():
 def validate_input_incus():
     if incus_name is None:
         print(f"'--incus' is required for command: {command_ref}", file=sys.stderr)
-        exit(1002)
+        exit(102)
     if '/' in incus_name:
         print("'--incus' must not have /", file=sys.stderr)
-        exit(1002)
+        exit(102)
 
 
 def validate_input_revision():
