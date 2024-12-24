@@ -43,7 +43,7 @@ command_arg_list = ', '.join([
 ])
 parser.add_argument('command', help=f"Commands: {command_arg_list}")
 incus_flag_list = ', '.join([
-    'exec'
+    'exec',
     'last-deploy',
     'last-deploy-blame',
     'list-revision',
