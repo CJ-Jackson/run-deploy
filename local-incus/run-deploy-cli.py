@@ -6,31 +6,35 @@ import sys
 
 parser = argparse.ArgumentParser(description='Queries and operate run-deploy system')
 
+command_arg_list = ', '.join([
+    'edition',
+    'last-deploy',
+    'last-deploy-blame',
+    'list-revision',
+    'revert',
+    'incus-list',
+    'image-list'
+])
 parser.add_argument('command',
-                    help=f"Commands: {', '.join([
-                        'edition',
-                        'last-deploy',
-                        'last-deploy-blame',
-                        'list-revision',
-                        'revert',
-                        'incus-list',
-                        'image-list'
-                    ])}")
+                    help=f"Commands: {command_arg_list}")
+
+incus_flag_list = ', '.join([
+    'last-deploy',
+    'last-deploy-blame',
+    'list-revision',
+    'revert',
+    'image-list'
+])
 parser.add_argument('--incus',
-                    help=f"Required for: {', '.join([
-                        'last-deploy',
-                        'last-deploy-blame',
-                        'list-revision',
-                        'revert',
-                        'image-list'
-                    ])}")
+                    help=f"Required for: {incus_flag_list}")
+image_flag_list = ', '.join([
+    'last-deploy',
+    'last-deploy-blame',
+    'list-revision',
+    'revert'
+])
 parser.add_argument('--image',
-                    help=f"Required for: {', '.join([
-                        'last-deploy',
-                        'last-deploy-blame',
-                        'list-revision',
-                        'revert'
-                    ])}")
+                    help=f"Required for: {image_flag_list}")
 parser.add_argument('--revision', help="Required for: revert")
 
 args = parser.parse_args()
