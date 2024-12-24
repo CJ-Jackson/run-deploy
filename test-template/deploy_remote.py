@@ -34,6 +34,7 @@ try:
             "run-deploy-remote-cli", ssh_address, "last-deploy", "--image", "test",
         ], check=True, capture_output=True).stdout.decode('utf-8').strip()
 except subprocess.CalledProcessError as e:
+    print(e.output.decode('utf-8'), file=sys.stderr)
     exit(e.returncode)
 
 # Create the image
