@@ -67,7 +67,7 @@ incus_name = args.incus
 image_ref = args.image
 command_ref = args.command
 revision_name = args.revision
-exec_cmd = args.exec
+exec_cmd = args.cmd
 
 
 def validate_input_image_incus():
