@@ -32,9 +32,30 @@ except subprocess.CalledProcessError:
 parser = argparse.ArgumentParser(description='Queries and operate run-deploy system')
 
 parser.add_argument('command',
-                    help="Possible commands: edition, last-deploy, last-deploy-blame, list-revision, revert, incus-list and image-list")
-parser.add_argument('--incus', help="Required for: last-deploy, last-deploy-blame, list-revision, revert and image-list")
-parser.add_argument('--image', help="Required for: last-deploy, last-deploy-blame, list-revision and revert")
+                    help=f"Commands: {', '.join([
+                        'edition',
+                        'last-deploy',
+                        'last-deploy-blame',
+                        'list-revision',
+                        'revert',
+                        'incus-list',
+                        'image-list'
+                    ])}")
+parser.add_argument('--incus',
+                    help=f"Required for: {', '.join([
+                        'last-deploy',
+                        'last-deploy-blame',
+                        'list-revision',
+                        'revert',
+                        'image-list'
+                    ])}")
+parser.add_argument('--image',
+                    help=f"Required for: {', '.join([
+                        'last-deploy',
+                        'last-deploy-blame',
+                        'list-revision',
+                        'revert'
+                    ])}")
 parser.add_argument('--revision', help="Required for: revert")
 
 args = parser.parse_args()
