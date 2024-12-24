@@ -49,17 +49,24 @@ os.mkdir("opt/run-deploy/minisign")
 os.mkdir("opt/run-deploy/ssh")
 os.mkdir("opt/run-deploy/script/deploy")
 
+doas_permission = []
+
 for run_deploy_path in pathlib.Path(f"{current_path}/{toml_config['edition']}").glob('*.py'):
     run_deploy_path = str(run_deploy_path)
     run_deploy_target_path = f"opt/run-deploy/bin/{os.path.basename(run_deploy_path).removesuffix('.py')}"
     shutil.copy(run_deploy_path, run_deploy_target_path)
     os.chmod(run_deploy_target_path, 0o700)
+    if run_deploy_target_path.endswith("-cli"):
+        doas_permission.append(
+            f"permit nopass setenv {{ RUN_DEPLOY_TOKEN RUN_DEPLOY_KEY }} {toml_config['deploy_user']} as root cmd /{run_deploy_target_path}"
+        )
+    else:
+        doas_permission.append(
+            f"permit nopass {toml_config['deploy_user']} as root cmd /{run_deploy_target_path}"
+        )
 
 doas = pathlib.Path("opt/run-deploy/etc/doas.conf")
-doas.write_text(f"""
-permit nopass {toml_config['deploy_user']} as root cmd /opt/run-deploy/bin/run-deploy
-permit nopass setenv {{ RUN_DEPLOY_TOKEN RUN_DEPLOY_KEY }} {toml_config['deploy_user']} as root cmd /opt/run-deploy/bin/run-deploy-cli
-""".strip(), 'utf-8')
+doas.write_text("\n".join(doas_permission), 'utf-8')
 doas.chmod(0o400)
 
 update = pathlib.Path("update.sh")
