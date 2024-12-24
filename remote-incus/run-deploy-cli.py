@@ -40,9 +40,7 @@ command_arg_list = ', '.join([
     'list-incus',
     'list-image'
 ])
-parser.add_argument('command',
-                    help=f"Commands: {command_arg_list}")
-
+parser.add_argument('command', help=f"Commands: {command_arg_list}")
 incus_flag_list = ', '.join([
     'exec'
     'last-deploy',
