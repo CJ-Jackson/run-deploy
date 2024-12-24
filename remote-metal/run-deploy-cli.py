@@ -215,6 +215,8 @@ match command_ref:
             subprocess.run([
                 f"/opt/run-deploy/exec/{exec_cmd}"
             ], check=True)
+        except FileNotFoundError:
+            exit(0)
         except subprocess.CalledProcessError as e:
             exit(e.returncode)
     case _:
