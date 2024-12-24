@@ -23,7 +23,7 @@ run-deploy currently has three editions.
 * squashfuse
 
 ### remote-incus
-* python3
+* python3.11
 * squashfuse
 * doas
 * dash
@@ -31,7 +31,7 @@ run-deploy currently has three editions.
 * incus
 
 ### remote-metal
-* python3
+* python3.11
 * squashfuse
 * doas
 * dash
