@@ -17,21 +17,24 @@ except IndexError:
     print("Need server hostname and ssh address", file=sys.stderr)
     exit(1)
 
-# Get the edition
-edition = subprocess.run([
-    "run-deploy-remote-cli", ssh_address, "edition"
-], check=True, capture_output=True).stdout.decode('utf-8').strip()
-
-# Get the last deploy
 last_deploy = ""
-if edition == "remote-incus":
-    last_deploy = subprocess.run([
-        "run-deploy-remote-cli", ssh_address, "last-deploy", "--incus", "test", "--image", "test",
+try:
+    # Get the edition
+    edition = subprocess.run([
+        "run-deploy-remote-cli", ssh_address, "edition"
     ], check=True, capture_output=True).stdout.decode('utf-8').strip()
-else:
-    last_deploy = subprocess.run([
-        "run-deploy-remote-cli", ssh_address, "last-deploy", "--image", "test",
-    ], check=True, capture_output=True).stdout.decode('utf-8').strip()
+
+    # Get the last deploy
+    if edition == "remote-incus":
+        last_deploy = subprocess.run([
+            "run-deploy-remote-cli", ssh_address, "last-deploy", "--incus", "test", "--image", "test",
+        ], check=True, capture_output=True).stdout.decode('utf-8').strip()
+    else:
+        last_deploy = subprocess.run([
+            "run-deploy-remote-cli", ssh_address, "last-deploy", "--image", "test",
+        ], check=True, capture_output=True).stdout.decode('utf-8').strip()
+except subprocess.CalledProcessError as e:
+    exit(e.returncode)
 
 # Create the image
 image_name = subprocess.run([
@@ -55,7 +58,10 @@ try:
         "ssh", ssh_address, "--", "doas", "/opt/run-deploy/bin/run-deploy",
         f"/tmp/run-deploy/{os.path.basename(image_name)}", f"{getpass.getuser()}@{socket.gethostname()}"
     ], check=True)
-except subprocess.CalledProcessError:
+except subprocess.CalledProcessError as e:
+    if e.returncode == 101:
+        shutil.rmtree(os.path.dirname(image_name))
+        exit(101)
     if edition == "remote-incus":
         last_deploy = subprocess.run([
             "run-deploy-remote-cli", ssh_address, "revert", "--incus", "test", "--image", "test", "--revision", last_deploy

@@ -1,0 +1,22 @@
+# Goes into /opt/run-deploy/permission
+
+admin = false
+banned = false
+full-access = false
+read-access = false
+
+[metal]
+full-acesss = false
+# permit full access to image names
+permit = ["image-name-1", "image-name-2"]
+read-access = false
+# permit read access to image names
+permit-read = ["read-image-name-1", "read-image-name-2"]
+
+[incus.container]
+full-acesss = false
+# permit full access to image names
+permit = ["image-name-1", "image-name-2"]
+read-access = false
+# permit read access to image names
+permit-read = ["read-image-name-1", "read-image-name-2"]

@@ -36,5 +36,5 @@ try:
     subprocess.run([
         "ssh", ssh_address, "--", env_token, env_key, "doas", "/opt/run-deploy/bin/run-deploy-cli"
     ] + sys.argv[2:], check=True)
-except subprocess.CalledProcessError:
-    exit(1)
+except subprocess.CalledProcessError as e:
+    exit(e.returncode)
