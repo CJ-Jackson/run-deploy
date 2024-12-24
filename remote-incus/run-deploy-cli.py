@@ -32,7 +32,7 @@ except subprocess.CalledProcessError:
 parser = argparse.ArgumentParser(description='Queries and operate run-deploy system')
 
 parser.add_argument('command',
-                    help="Possible commands: edition, last-deploy, last-deploy-blame, list-revision and revert")
+                    help="Possible commands: edition, last-deploy, last-deploy-blame, list-revision, revert, incus-list and image-list")
 parser.add_argument('--incus')
 parser.add_argument('--image')
 parser.add_argument('--revision')
@@ -52,6 +52,15 @@ def validate_input_image_incus():
     if '/' in image_ref or '/' in incus_name:
         print("'--incus' and '--image' must not have /", file=sys.stderr)
         exit(102)
+
+
+def validate_input_incus():
+    if incus_name is None:
+        print(f"'--incus' is required for command: {command_ref}", file=sys.stderr)
+        exit(1002)
+    if '/' in incus_name:
+        print("'--incus' must not have /", file=sys.stderr)
+        exit(1002)
 
 
 def validate_input_revision():
@@ -185,6 +194,23 @@ match command_ref:
         subprocess.run([
             "incus", "exec", incus_name, "--", f"{image_path}/{revision_name}"
         ], check=True)
+    case "incus-list":
+        Permission.create().must_be_read()
+        subprocess.run([
+            "incus", "list", "-c", "n", "-f", "csv"
+        ])
+    case "image-list":
+        validate_input_incus()
+        Permission.create().must_be_read()
+        try:
+            images = subprocess.run([
+                "incus", "exec", incus_name, "--cwd", "/opt/run-deploy/image", "--", "ls", "-1A"
+            ], check=True, capture_output=True).stdout.decode('utf-8').strip().splitlines()
+            images.sort()
+            for image in images:
+                print(image)
+        except subprocess.CalledProcessError:
+            print("")
     case _:
         print(f"Command `{command_ref}` was not found!", file=sys.stderr)
         exit(103)

@@ -33,7 +33,7 @@ except subprocess.CalledProcessError:
 parser = argparse.ArgumentParser(description='Queries and operate run-deploy system')
 
 parser.add_argument('command',
-                    help="Possible commands: edition, last-deploy, last-deploy-blame, list-revision and revert")
+                    help="Possible commands: edition, last-deploy, last-deploy-blame, list-revision, revert and image-list")
 parser.add_argument('--image')
 parser.add_argument('--revision')
 
@@ -178,6 +178,12 @@ match command_ref:
         subprocess.run([
             f"{image_path}/{revision_name}"
         ], check=True)
+    case "image-list":
+        Permission.create().must_be_read()
+        images = list(pathlib.Path("/opt/run-deploy/image").glob('*'))
+        images.sort()
+        for image in images:
+            print(os.path.basename(image))
     case _:
         print(f"Command `{command_ref}` was not found!", file=sys.stderr)
         exit(103)
