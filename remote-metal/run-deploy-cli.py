@@ -41,16 +41,14 @@ command_arg_list = ', '.join([
     'revert',
     'list-image'
 ])
-parser.add_argument('command',
-                    help=f"Commands: {command_arg_list}")
+parser.add_argument('command', help=f"Commands: {command_arg_list}")
 image_flag_list = ', '.join([
     'last-deploy',
     'last-deploy-blame',
     'list-revision',
     'revert'
 ])
-parser.add_argument('--image',
-                    help=f"Required for: {image_flag_list}")
+parser.add_argument('--image', help=f"Required for: {image_flag_list}")
 parser.add_argument('--revision', help="Required for: revert")
 parser.add_argument('--cmd', help="Required for: exec")
 
