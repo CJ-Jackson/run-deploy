@@ -12,8 +12,8 @@ command_arg_list = ', '.join([
     'last-deploy-blame',
     'list-revision',
     'revert',
-    'incus-list',
-    'image-list'
+    'list-incus',
+    'list-image'
 ])
 parser.add_argument('command',
                     help=f"Commands: {command_arg_list}")
@@ -23,7 +23,7 @@ incus_flag_list = ', '.join([
     'last-deploy-blame',
     'list-revision',
     'revert',
-    'image-list'
+    'list-image'
 ])
 parser.add_argument('--incus',
                     help=f"Required for: {incus_flag_list}")
@@ -126,11 +126,11 @@ match command_ref:
         subprocess.run([
             "incus", "exec", incus_name, "--", f"{image_path}/{revision_name}"
         ], check=True)
-    case "incus-list":
+    case "list-incus":
         subprocess.run([
             "incus", "list", "-c", "n", "-f", "csv"
         ])
-    case "image-list":
+    case "list-image":
         validate_input_incus()
         try:
             images = subprocess.run([

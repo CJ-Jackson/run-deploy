@@ -38,7 +38,7 @@ command_arg_list = ', '.join([
     'last-deploy-blame',
     'list-revision',
     'revert',
-    'image-list'
+    'list-image'
 ])
 parser.add_argument('command',
                     help=f"Commands: {command_arg_list}")
@@ -193,7 +193,7 @@ match command_ref:
         subprocess.run([
             f"{image_path}/{revision_name}"
         ], check=True)
-    case "image-list":
+    case "list-image":
         Permission.create().must_be_read()
         images = list(pathlib.Path("/opt/run-deploy/image").glob('*'))
         images.sort()
