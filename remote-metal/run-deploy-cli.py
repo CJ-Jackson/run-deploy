@@ -54,40 +54,40 @@ parser.add_argument('--cmd', help="Required for: exec")
 
 args = parser.parse_args()
 
-image_ref = args.image
-command_ref = args.command
-revision_name = args.revision
-exec_cmd = args.cmd
+arg_image = args.image
+arg_command = args.command
+arg_revision = args.revision
+arg_cmd = args.cmd
 
 
 def validate_input_image():
-    if image_ref is None:
-        print(f"'--image' is required for command: {command_ref}", file=sys.stderr)
+    if arg_image is None:
+        print(f"'--image' is required for command: {arg_command}", file=sys.stderr)
         exit(102)
-    if '/' in image_ref:
+    if '/' in arg_image:
         print("'--image' must not have /", file=sys.stderr)
         exit(102)
 
 
 def validate_input_revision():
-    if revision_name is None:
-        print(f"'--revision' is required for command: {command_ref}", file=sys.stderr)
+    if arg_revision is None:
+        print(f"'--revision' is required for command: {arg_command}", file=sys.stderr)
         exit(102)
-    if '/' in revision_name:
+    if '/' in arg_revision:
         print("'--revision' must not have /", file=sys.stderr)
         exit(102)
 
 def validate_input_exec():
-    if exec_cmd is None:
-        print(f"'--exec' is required for command: {command_ref}", file=sys.stderr)
+    if arg_cmd is None:
+        print(f"'--exec' is required for command: {arg_command}", file=sys.stderr)
         exit(102)
-    if '/' in exec_cmd:
+    if '/' in arg_cmd:
         print("'--exec' must not have /", file=sys.stderr)
         exit(102)
 
 
 def get_image_path():
-    return f"/opt/run-deploy/image/{image_ref}"
+    return f"/opt/run-deploy/image/{arg_image}"
 
 
 @dataclass(frozen=True)
@@ -114,21 +114,21 @@ class Permission:
             return cls(full=True, read=True)
         overall_read_access = permission.get("read-access", False)
 
-        if image_ref is None:
+        if arg_image is None:
             return cls(full=False, read=overall_read_access)
 
         image_permission = permission.get("metal", {})
         if image_permission.get("full-access", False):
             return cls(full=True, read=True)
-        full = image_ref in image_permission.get("permit", [])
-        read = overall_read_access or image_permission.get("read-access", False) or image_ref in image_permission.get(
+        full = arg_image in image_permission.get("permit", [])
+        read = overall_read_access or image_permission.get("read-access", False) or arg_image in image_permission.get(
             "permit-read", [])
 
         return cls(full=full, read=read)
 
     def must_be_admin(self):
         if not self.admin:
-            print(f"You must be admin for command: {command_ref} ( image: {image_ref} )", file=sys.stderr)
+            print(f"You must be admin for command: {arg_command} ( image: {arg_image} )", file=sys.stderr)
             exit(101)
 
     def must_be_full(self):
@@ -136,7 +136,7 @@ class Permission:
             return
         if not self.full:
             print(
-                f"You don't have full permission for command: {command_ref} ( image: {image_ref} )", file=sys.stderr)
+                f"You don't have full permission for command: {arg_command} ( image: {arg_image} )", file=sys.stderr)
             exit(101)
 
     def must_be_read(self):
@@ -144,19 +144,19 @@ class Permission:
             return
         if not self.read:
             print(
-                f"You don't have read permission for command: {command_ref} ( image: {image_ref} )", file=sys.stderr)
+                f"You don't have read permission for command: {arg_command} ( image: {arg_image} )", file=sys.stderr)
             exit(101)
 
 
-match command_ref:
+match arg_command:
     case "edition":
         print("remote-metal")
     case "last-deploy":
         validate_input_image()
         Permission.create().must_be_read()
         image_path = get_image_path()
-        if os.path.exists(f"{image_path}/{image_ref}.squashfs"):
-            print(os.path.basename(os.path.realpath(f"{image_path}/{image_ref}.squashfs")).removesuffix('.squashfs'))
+        if os.path.exists(f"{image_path}/{arg_image}.squashfs"):
+            print(os.path.basename(os.path.realpath(f"{image_path}/{arg_image}.squashfs")).removesuffix('.squashfs'))
         else:
             print("There isn't a last deploy", file=sys.stderr)
             exit(0)
@@ -164,8 +164,8 @@ match command_ref:
         validate_input_image()
         Permission.create().must_be_read()
         image_path = get_image_path()
-        if os.path.exists(f"{image_path}/{image_ref}.squashfs"):
-            last_path = os.path.realpath(f"{image_path}/{image_ref}.squashfs").removesuffix('.squashfs')
+        if os.path.exists(f"{image_path}/{arg_image}.squashfs"):
+            last_path = os.path.realpath(f"{image_path}/{arg_image}.squashfs").removesuffix('.squashfs')
             print(pathlib.Path(f"{last_path}.blame").read_text('utf-8'))
         else:
             print("There isn't a last deploy", file=sys.stderr)
@@ -175,21 +175,21 @@ match command_ref:
         Permission.create().must_be_read()
         image_path = get_image_path()
         last_path = ""
-        if os.path.exists(f"{image_path}/{image_ref}.squashfs"):
-            last_path = os.path.basename(os.path.realpath(f"{image_path}/{image_ref}.squashfs")).removesuffix(
+        if os.path.exists(f"{image_path}/{arg_image}.squashfs"):
+            last_path = os.path.basename(os.path.realpath(f"{image_path}/{arg_image}.squashfs")).removesuffix(
                 '.squashfs')
         else:
             print("There isn't a last deploy", file=sys.stderr)
             exit(0)
         revision = list(pathlib.Path(image_path).glob(f'*.blame'))
         for index in range(len(revision)):
-            revision_name = str(revision[index]).removesuffix('.blame')
-            blame = pathlib.Path(f"{revision_name}.blame").read_text('utf-8')
-            revision_name = os.path.basename(revision_name)
+            arg_revision = str(revision[index]).removesuffix('.blame')
+            blame = pathlib.Path(f"{arg_revision}.blame").read_text('utf-8')
+            arg_revision = os.path.basename(arg_revision)
             current = ""
-            if revision_name == last_path:
+            if arg_revision == last_path:
                 current = "     *CURRENT*"
-            revision[index] = f"{revision_name}   blame: {blame}{current}"
+            revision[index] = f"{arg_revision}   blame: {blame}{current}"
         revision.sort()
         revision = list(reversed(revision))
         for rev in revision:
@@ -200,7 +200,7 @@ match command_ref:
         Permission.create().must_be_full()
         image_path = get_image_path()
         subprocess.run([
-            f"{image_path}/{revision_name}"
+            f"{image_path}/{arg_revision}"
         ], check=True)
     case "list-image":
         Permission.create().must_be_read()
@@ -213,7 +213,7 @@ match command_ref:
         Permission.create().must_be_admin()
         try:
             subprocess.run([
-                f"/opt/run-deploy/exec/{exec_cmd}"
+                f"/opt/run-deploy/exec/{arg_cmd}"
             ], check=True)
         except FileNotFoundError:
             exit(0)
@@ -223,5 +223,5 @@ match command_ref:
         except subprocess.CalledProcessError as e:
             exit(e.returncode)
     case _:
-        print(f"Command `{command_ref}` was not found!", file=sys.stderr)
+        print(f"Command `{arg_command}` was not found!", file=sys.stderr)
         exit(103)
