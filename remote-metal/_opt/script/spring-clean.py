@@ -16,7 +16,7 @@ arg_keep = int(args.keep)
 arg_real_run = args.real_run
 
 images = {}
-unsorted_images = pathlib.Path("/opt/run-deploy/images").glob("*/*.blame")
+unsorted_images = pathlib.Path("/opt/run-deploy/image").glob("*/*.blame")
 if len(list(unsorted_images)) == 0:
     exit(0)
 
