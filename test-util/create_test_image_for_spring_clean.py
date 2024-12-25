@@ -2,7 +2,7 @@
 import os
 import pathlib
 
-os.chdir("/opt/run-deploy/images")
+os.chdir("/opt/run-deploy/image")
 
 for dir_name in range(5):
     dir_name = f"run-deploy-test-{dir_name:02}"

@@ -5,21 +5,27 @@ import pathlib
 import subprocess
 import time
 
-parser = argparse.ArgumentParser(description="Clean out older deploy on host and keep the last defined amount")
+parser = argparse.ArgumentParser(description="Clean out older deploy on incus container and keep the last defined amount")
 
 parser.add_argument("--keep", default=20, help="The amount of last deploy to keep")
 parser.add_argument("--real-run", action='store_true')
+parser.add_argument("--incus", required=True)
 
 args = parser.parse_args()
 
 arg_keep = int(args.keep)
 arg_real_run = args.real_run
+arg_incus = args.incus
 
-images = {}
-unsorted_images = pathlib.Path("/opt/run-deploy/image").glob("*/*.blame")
-if len(list(unsorted_images)) == 0:
+unsorted_images = []
+try:
+    unsorted_images = subprocess.run([
+        "incus", "exec", arg_incus, "--", "sh", "-c", "for image in /opt/run-deploy/image/*/*.blame; do (echo ${image}); done"
+    ], check=True, capture_output=True).stdout.decode('utf-8').strip().splitlines()
+except subprocess.CalledProcessError:
     exit(0)
 
+images = {}
 for unsorted_image in unsorted_images:
     image_key = os.path.dirname(unsorted_image)
     if image_key not in images:
@@ -56,12 +62,15 @@ if not arg_real_run:
     print(script)
     exit(0)
 
-script_name = f"/tmp/run-deploy-spring-clean-metal-{time.time()}"
+script_name = f"/tmp/run-deploy-spring-clean-incus-{time.time()}"
 script_path = pathlib.Path(script_name)
 script_path.write_text(script, 'utf-8')
 script_path.chmod(0o700)
 
 subprocess.run([
-    script_name
+    "incus", "file", "push", script_name, f"{arg_incus}/tmp/"
+], check=True)
+subprocess.run([
+    "incus", "exec", arg_incus, "--", script_name
 ], check=True)
 os.remove(script_name)
