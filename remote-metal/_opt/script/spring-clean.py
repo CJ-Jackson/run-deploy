@@ -17,6 +17,9 @@ arg_real_run = args.real_run
 
 images = {}
 unsorted_images = pathlib.Path("/opt/run-deploy/images").glob("*/*.blame")
+if len(list(unsorted_images)) == 0:
+    exit(0)
+
 for unsorted_image in unsorted_images:
     image_key = os.path.dirname(unsorted_image)
     if image_key not in images:
@@ -37,6 +40,9 @@ for image in images_to_delete:
     files_to_delete.append(f"rm '{image.removesuffix('.blame')}'")
     files_to_delete.append(f"rm '{image.removesuffix('.blame')}.squashfs'")
 
+if len(files_to_delete) == 0:
+    exit(0)
+
 files_to_delete = "\n".join(files_to_delete)
 
 script = f"""#!/bin/sh
@@ -55,3 +61,4 @@ script_path.chmod(0o700)
 subprocess.run([
     script_name
 ], check=True)
+os.remove(script_name)
