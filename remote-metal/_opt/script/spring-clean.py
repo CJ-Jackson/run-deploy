@@ -27,7 +27,7 @@ images_to_delete = []
 for _, image_list in images.items():
     image_list.sort()
     image_list = list(reversed(image_list))
-    if len(image_list) >= arg_keep:
+    if len(image_list) > arg_keep:
         images_to_delete += image_list[arg_keep:]
 
 files_to_delete = []
