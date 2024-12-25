@@ -1,0 +1,2 @@
+#!/bin/dash
+systemctl start run-deploy-spring-clean.service

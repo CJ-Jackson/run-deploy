@@ -66,6 +66,8 @@ for run_deploy_path in pathlib.Path(f"{current_path}/{toml_config['edition']}").
             f"permit nopass {toml_config['deploy_user']} as root cmd /{run_deploy_target_path}"
         )
 
+shutil.copytree(f"{current_path}/{toml_config['edition']}/_opt", "opt/run-deploy", dirs_exist_ok=True)
+
 doas = pathlib.Path("opt/run-deploy/etc/doas.conf")
 doas.write_text("\n".join(doas_permission), 'utf-8')
 doas.chmod(0o400)
