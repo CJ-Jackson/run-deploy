@@ -39,7 +39,8 @@ command_arg_list = ', '.join([
     'last-deploy-blame',
     'list-revision',
     'revert',
-    'list-image'
+    'list-image',
+    'list-exec'
 ])
 parser.add_argument('command', help=f"Commands: {command_arg_list}")
 image_flag_list = ', '.join([
