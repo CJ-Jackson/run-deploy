@@ -255,6 +255,19 @@ match arg_command:
             ], check=True)
         except subprocess.CalledProcessError as e:
             exit(e.returncode)
+    case "list-exec":
+        validate_input_incus()
+        Permission.create().must_be_admin()
+        try:
+            exec_list = subprocess.run([
+                "incus", "exec", arg_incus, "--cwd", "/opt/run-deploy/exec", "--", "ls", "-1A"
+            ], check=True, capture_output=True).stdout.decode('utf-8').strip().splitlines()
+            exec_list.sort()
+            for ex in exec_list:
+                print(ex)
+        except subprocess.CalledProcessError:
+            print("")
+            exit(0)
     case _:
         print(f"Command `{arg_command}` was not found!", file=sys.stderr)
         exit(103)

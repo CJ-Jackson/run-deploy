@@ -222,6 +222,11 @@ match arg_command:
             exit(13)
         except subprocess.CalledProcessError as e:
             exit(e.returncode)
+    case "list-exec":
+        Permission.create().must_be_admin()
+        exec_list = pathlib.Path("/opt/run-deploy/exec").glob('*')
+        for ex in exec_list:
+            print(os.path.basename(ex))
     case _:
         print(f"Command `{arg_command}` was not found!", file=sys.stderr)
         exit(103)
