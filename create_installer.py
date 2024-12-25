@@ -122,11 +122,8 @@ exit 0
 """, 'utf-8')
 install.chmod(0o755)
 
-authorized_keys = ""
-for key in toml_config['ssh_authorized_keys']:
-    authorized_keys += f"{key}\n"
 key_path = pathlib.Path("opt/run-deploy/ssh/authorized_keys")
-key_path.write_text(authorized_keys, 'utf-8')
+key_path.write_text("\n".join(toml_config['ssh_authorized_keys']) + "\n", 'utf-8')
 key_path.chmod(0o640)
 
 os.chdir('..')
