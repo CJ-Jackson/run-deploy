@@ -49,15 +49,15 @@ incus_flag_list = ', '.join([
     'last-deploy-blame',
     'list-revision',
     'revert',
-    'list-image'
+    'list-image',
+    'list-exec'
 ])
 parser.add_argument('--incus', help=f"Required for: {incus_flag_list}")
 image_flag_list = ', '.join([
     'last-deploy',
     'last-deploy-blame',
     'list-revision',
-    'revert',
-    'list-exec'
+    'revert'
 ])
 parser.add_argument('--image', help=f"Required for: {image_flag_list}")
 parser.add_argument('--revision', help="Required for: revert")
