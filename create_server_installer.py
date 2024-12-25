@@ -17,6 +17,8 @@ deploy_user = "deploy"
 
 # Place public keys here
 ssh_authorized_keys = []
+
+# The format is TOML
 """.strip()
 
 toml_config_filename = f"/tmp/run-deploy-installer-config-{time.time()}.toml"
