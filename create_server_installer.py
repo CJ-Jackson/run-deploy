@@ -24,7 +24,7 @@ with open(toml_config_filename, "w", encoding="utf-8") as f:
     print(toml_config, file=f)
 
 subprocess.run([
-    "nvim", toml_config_filename
+    os.environ.get("EDITOR", "nano"), toml_config_filename
 ])
 
 with open(toml_config_filename, "rb") as f:
