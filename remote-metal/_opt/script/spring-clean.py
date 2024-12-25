@@ -15,11 +15,15 @@ args = parser.parse_args()
 arg_keep = int(args.keep)
 arg_real_run = args.real_run
 
-images = {}
-unsorted_images = pathlib.Path("/opt/run-deploy/image").glob("*/*.blame")
-if len(list(unsorted_images)) == 0:
+unsorted_images = []
+try:
+    unsorted_images = subprocess.run([
+        "sh", "-c", "for image in /opt/run-deploy/image/*/*.blame; do (echo ${image}); done"
+    ], check=True, capture_output=True).stdout.decode('utf-8').strip().splitlines()
+except subprocess.CalledProcessError:
     exit(0)
 
+images = {}
 for unsorted_image in unsorted_images:
     image_key = os.path.dirname(unsorted_image)
     if image_key not in images:
