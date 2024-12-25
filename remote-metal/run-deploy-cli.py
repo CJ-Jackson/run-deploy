@@ -217,7 +217,8 @@ match arg_command:
                 f"/opt/run-deploy/exec/{arg_cmd}"
             ], check=True)
         except FileNotFoundError:
-            exit(0)
+            print("File Not Found", file=sys.stderr)
+            exit(127)
         except PermissionError as e:
             print("Permission Error", file=sys.stderr)
             exit(13)
