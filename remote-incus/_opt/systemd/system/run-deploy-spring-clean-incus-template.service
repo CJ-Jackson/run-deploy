@@ -1,7 +1,0 @@
-[Unit]
-Description="Clean up old deploy from incus container"
-
-[Service]
-User=root
-Type=oneshot
-ExecStart=/opt/run-deploy/script/spring-clean.py --real-run --incus template

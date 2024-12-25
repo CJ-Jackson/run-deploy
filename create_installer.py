@@ -69,6 +69,20 @@ for run_deploy_path in pathlib.Path(f"{current_path}/{toml_config['edition']}").
 if os.path.exists(f"{current_path}/{toml_config['edition']}/_opt"):
     shutil.copytree(f"{current_path}/{toml_config['edition']}/_opt", "opt/run-deploy", dirs_exist_ok=True)
 
+systemd_symlinks = []
+systemd_cmd = []
+systemd_paths = pathlib.Path("opt/run-deploy/systemd/system").glob("run-deploy-*")
+for systemd_name in systemd_paths:
+    systemd_name = os.path.basename(str(systemd_name))
+    systemd_symlinks.append(
+        f"ln -s '/opt/run-deploy/systemd/system/{systemd_name}' '/etc/systemd/system/{systemd_name}'"
+    )
+    if systemd_name.endswith(".timer") or systemd_name.endswith(".path"):
+        systemd_cmd.append(f"systemctl enable '{systemd_name}'")
+        systemd_cmd.append(f"systemctl start '{systemd_name}'")
+systemd_symlinks = "\n".join(systemd_symlinks)
+systemd_cmd = "\n".join(systemd_cmd)
+
 doas = pathlib.Path("opt/run-deploy/etc/doas.conf")
 doas.write_text("\n".join(doas_permission), 'utf-8')
 doas.chmod(0o400)
@@ -85,14 +99,12 @@ install.write_text(f"""#!/bin/dash
 cp -rp opt/run-deploy /opt
 
 # Setup system service
-ln -s /opt/run-deploy/systemd/system/run-deploy-permission.path /etc/systemd/system/run-deploy-permission.path
-ln -s /opt/run-deploy/systemd/system/run-deploy-permission.service /etc/systemd/system/run-deploy-permission.service
-systemctl enable run-deploy-permission.path
-systemctl start run-deploy-permission.path
+{systemd_symlinks}
+{systemd_cmd}
 
 # Add user and harden home directory, and copy authorized_keys
 useradd -m -s /bin/dash {toml_config['deploy_user']}
-chown root:{toml_config['deploy_user']}  /home/{toml_config['deploy_user']} /home/{toml_config['deploy_user']}/.* 2> /dev/null
+chown root:{toml_config['deploy_user']} /home/{toml_config['deploy_user']} /home/{toml_config['deploy_user']}/.* 2> /dev/null
 chmod 750 /home/{toml_config['deploy_user']}
 chmod 640 /home/{toml_config['deploy_user']}/.* 2> /dev/null
 mkdir /home/{toml_config['deploy_user']}/.ssh
