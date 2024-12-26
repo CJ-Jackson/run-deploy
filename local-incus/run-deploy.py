@@ -5,6 +5,7 @@ import os.path
 import pathlib
 import shutil
 import socket
+import string
 import subprocess
 import sys
 import time
@@ -19,6 +20,14 @@ try:
 except IndexError:
     print("Must have one argument", file=sys.stderr)
     exit(1)
+
+def file_name_validation(value: str, name: str):
+    valid = not set(value).difference(string.ascii_letters + string.digits + '.-_')
+    if not valid:
+        print(f"{name} must be `ascii + digits + .-_`")
+        exit(102)
+
+file_name_validation(image_name, "image_name")
 
 if not image_name.endswith(".squashfs"):
     print("Image name must end with '.squashfs'", file=sys.stderr)
@@ -72,13 +81,9 @@ except (KeyError, json.JSONDecodeError):
     exit(108)
 
 # Sanity check
-valid = True
-if '/' in incus_name or '/' in to_exec or '/' in image_dir:
-    valid = False
-
-if not valid:
-    print("Cannot have '/' in values, also image directory name must also be in image file.", file=sys.stderr)
-    exit(1)
+file_name_validation(incus_name, "incus_name")
+file_name_validation(to_exec, "to_exec")
+file_name_validation(image_dir, "image_dir")
 
 # Create directory if not exist
 subprocess.run([

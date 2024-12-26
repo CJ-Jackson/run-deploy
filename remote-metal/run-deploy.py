@@ -5,6 +5,7 @@ import os.path
 import pathlib
 import shutil
 import socket
+import string
 import subprocess
 import sys
 import time
@@ -25,6 +26,14 @@ try:
 except IndexError:
     print("Must have two argument", file=sys.stderr)
     exit(102)
+
+def file_name_validation(value: str, name: str):
+    valid = not set(value).difference(string.ascii_letters + string.digits + '.-_')
+    if not valid:
+        print(f"{name} must be `ascii + digits + .-_`")
+        exit(102)
+
+file_name_validation(image_name, "image_name")
 
 if not image_name.endswith(".squashfs"):
     print("Image name must end with '.squashfs'", file=sys.stderr)
@@ -85,14 +94,8 @@ except (KeyError, json.JSONDecodeError):
     exit(108)
 
 # Sanity check
-valid = True
-if '/' in to_exec or '/' in image_dir:
-    valid = False
-
-if not valid:
-    print("Cannot have '/' in values, also image directory name must also be in file.", file=sys.stderr)
-    exit(1002)
-
+file_name_validation(to_exec, "to_exec")
+file_name_validation(image_dir, "image_dir")
 
 @dataclass(frozen=True)
 class Permission:

@@ -2,6 +2,7 @@
 import argparse
 import os.path
 import pathlib
+import string
 import subprocess
 import sys
 import tomllib
@@ -55,40 +56,41 @@ parser.add_argument('--cmd', help="Required for: exec")
 
 args = parser.parse_args()
 
-arg_image = args.image
 arg_command = args.command
-arg_revision = args.revision
-arg_cmd = args.cmd
+flag_image = args.image
+flag_revision = args.revision
+flag_cmd = args.cmd
 
+
+def file_name_validation(value: str, name: str):
+    valid = not set(value).difference(string.ascii_letters + string.digits + '.-_')
+    if not valid:
+        print(f"{name} must be `ascii + digits + .-_`")
+        exit(102)
 
 def validate_input_image():
-    if arg_image is None:
+    if flag_image is None:
         print(f"'--image' is required for command: {arg_command}", file=sys.stderr)
         exit(102)
-    if '/' in arg_image:
-        print("'--image' must not have /", file=sys.stderr)
-        exit(102)
+    file_name_validation(flag_image, "flag_image")
 
 
 def validate_input_revision():
-    if arg_revision is None:
+    if flag_revision is None:
         print(f"'--revision' is required for command: {arg_command}", file=sys.stderr)
         exit(102)
-    if '/' in arg_revision:
-        print("'--revision' must not have /", file=sys.stderr)
-        exit(102)
+    file_name_validation(flag_revision, "flag_revision")
+
 
 def validate_input_exec():
-    if arg_cmd is None:
+    if flag_cmd is None:
         print(f"'--exec' is required for command: {arg_command}", file=sys.stderr)
         exit(102)
-    if '/' in arg_cmd:
-        print("'--exec' must not have /", file=sys.stderr)
-        exit(102)
+    file_name_validation(flag_cmd, "flag_cmd")
 
 
 def get_image_path():
-    return f"/opt/run-deploy/image/{arg_image}"
+    return f"/opt/run-deploy/image/{flag_image}"
 
 
 @dataclass(frozen=True)
@@ -118,21 +120,21 @@ class Permission:
             return cls(full=True, read=True)
         overall_read_access = permission.get("read-access", False)
 
-        if arg_image is None:
+        if flag_image is None:
             return cls(full=False, read=overall_read_access)
 
         image_permission = permission.get("metal", {})
         if image_permission.get("full-access", False):
             return cls(full=True, read=True)
-        full = arg_image in image_permission.get("permit", [])
-        read = overall_read_access or image_permission.get("read-access", False) or arg_image in image_permission.get(
+        full = flag_image in image_permission.get("permit", [])
+        read = overall_read_access or image_permission.get("read-access", False) or flag_image in image_permission.get(
             "permit-read", [])
 
         return cls(full=full, read=read)
 
     def must_be_admin(self):
         if not self.admin:
-            print(f"You must be admin for command: {arg_command} ( image: {arg_image} )", file=sys.stderr)
+            print(f"You must be admin for command: {arg_command} ( image: {flag_image} )", file=sys.stderr)
             exit(101)
 
     def must_be_full(self):
@@ -140,7 +142,7 @@ class Permission:
             return
         if not self.full:
             print(
-                f"You don't have full permission for command: {arg_command} ( image: {arg_image} )", file=sys.stderr)
+                f"You don't have full permission for command: {arg_command} ( image: {flag_image} )", file=sys.stderr)
             exit(101)
 
     def must_be_read(self):
@@ -148,7 +150,7 @@ class Permission:
             return
         if not self.read:
             print(
-                f"You don't have read permission for command: {arg_command} ( image: {arg_image} )", file=sys.stderr)
+                f"You don't have read permission for command: {arg_command} ( image: {flag_image} )", file=sys.stderr)
             exit(101)
 
 
@@ -159,8 +161,8 @@ match arg_command:
         validate_input_image()
         Permission.create().must_be_read()
         image_path = get_image_path()
-        if os.path.exists(f"{image_path}/{arg_image}.squashfs"):
-            print(os.path.basename(os.path.realpath(f"{image_path}/{arg_image}.squashfs")).removesuffix('.squashfs'))
+        if os.path.exists(f"{image_path}/{flag_image}.squashfs"):
+            print(os.path.basename(os.path.realpath(f"{image_path}/{flag_image}.squashfs")).removesuffix('.squashfs'))
         else:
             print("There isn't a last deploy", file=sys.stderr)
             exit(0)
@@ -168,8 +170,8 @@ match arg_command:
         validate_input_image()
         Permission.create().must_be_read()
         image_path = get_image_path()
-        if os.path.exists(f"{image_path}/{arg_image}.squashfs"):
-            last_path = os.path.realpath(f"{image_path}/{arg_image}.squashfs").removesuffix('.squashfs')
+        if os.path.exists(f"{image_path}/{flag_image}.squashfs"):
+            last_path = os.path.realpath(f"{image_path}/{flag_image}.squashfs").removesuffix('.squashfs')
             print(pathlib.Path(f"{last_path}.blame").read_text('utf-8'))
         else:
             print("There isn't a last deploy", file=sys.stderr)
@@ -179,21 +181,21 @@ match arg_command:
         Permission.create().must_be_read()
         image_path = get_image_path()
         last_path = ""
-        if os.path.exists(f"{image_path}/{arg_image}.squashfs"):
-            last_path = os.path.basename(os.path.realpath(f"{image_path}/{arg_image}.squashfs")).removesuffix(
+        if os.path.exists(f"{image_path}/{flag_image}.squashfs"):
+            last_path = os.path.basename(os.path.realpath(f"{image_path}/{flag_image}.squashfs")).removesuffix(
                 '.squashfs')
         else:
             print("There isn't a last deploy", file=sys.stderr)
             exit(0)
         revision = list(pathlib.Path(image_path).glob(f'*.blame'))
         for index in range(len(revision)):
-            arg_revision = str(revision[index]).removesuffix('.blame')
-            blame = pathlib.Path(f"{arg_revision}.blame").read_text('utf-8')
-            arg_revision = os.path.basename(arg_revision)
+            flag_revision = str(revision[index]).removesuffix('.blame')
+            blame = pathlib.Path(f"{flag_revision}.blame").read_text('utf-8')
+            flag_revision = os.path.basename(flag_revision)
             current = ""
-            if arg_revision == last_path:
+            if flag_revision == last_path:
                 current = "     *CURRENT*"
-            revision[index] = f"{arg_revision}   blame: {blame}{current}"
+            revision[index] = f"{flag_revision}   blame: {blame}{current}"
         revision.sort()
         revision = list(reversed(revision))
         for rev in revision:
@@ -204,7 +206,7 @@ match arg_command:
         Permission.create().must_be_full()
         image_path = get_image_path()
         subprocess.run([
-            f"{image_path}/{arg_revision}"
+            f"{image_path}/{flag_revision}"
         ], check=True)
     case "list-image":
         Permission.create().must_be_read()
@@ -217,7 +219,7 @@ match arg_command:
         Permission.create().must_be_admin()
         try:
             subprocess.run([
-                f"/opt/run-deploy/exec/{arg_cmd}"
+                f"/opt/run-deploy/exec/{flag_cmd}"
             ], check=True)
         except FileNotFoundError:
             print("File Not Found", file=sys.stderr)
