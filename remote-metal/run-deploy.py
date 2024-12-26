@@ -67,17 +67,17 @@ shutil.move(image_name, f"{image_name.removesuffix('.squashfs')}/{image_name}")
 
 os.chdir(image_name.removesuffix('.squashfs'))
 
-data = {}
-with open("push.json", "r", encoding='utf-8') as f:
-    data = json.load(f)
-
 image_dir = ""
 to_exec = ""
 try:
+    data = {}
+    with open("push.json", "r", encoding='utf-8') as f:
+        data = json.load(f)
+
     data = data[socket.gethostname()]
     image_dir = data['image-dir'].strip()
     to_exec = data['exec'].strip()
-except KeyError:
+except (KeyError, json.JSONDecodeError):
     print("Manifest is not well-formed!", file=sys.stderr)
     os.chdir('..')
     shutil.rmtree(f"{image_name.removesuffix('.squashfs')}")
