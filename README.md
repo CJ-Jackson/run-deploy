@@ -203,6 +203,11 @@ options:
   --cmd CMD            Required for: exec
 ```
 
+### Note
+
+`exec` execute a script located in `/opt/run-deploy/exec`, useful for executing oneshot
+systemd unit.
+
 ## Permission
 
 run-deploy has permission system disabled by default, to enable it you need to create the directory
