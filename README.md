@@ -5,8 +5,6 @@ the following sane open-soruce solution.
 
 * [SquashFS](https://en.wikipedia.org/wiki/SquashFS)
   * With the json manifest located inside the image `_deploy/push.json`
-  * **FUN FACT**: It was introduct in 2002, while [Jenkins](https://en.wikipedia.org/wiki/Jenkins_(software)) was
-    introduce in 2011... Amazing.
 * [OpenDoas](https://wiki.archlinux.org/title/Doas)
   * To allow deploy user to run the script as root, it is a lot safer than SUDO and Polkit.
 * [Minisign](https://jedisct1.github.io/minisign/)
