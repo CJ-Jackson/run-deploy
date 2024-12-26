@@ -62,7 +62,7 @@ if not arg_real_run:
     print(script)
     exit(0)
 
-script_name = f"/tmp/run-deploy-spring-clean-incus-{time.time()}"
+script_name = f"/tmp/run-deploy-spring-clean-incus-{arg_incus}-{time.time()}"
 script_path = pathlib.Path(script_name)
 script_path.write_text(script, 'utf-8')
 script_path.chmod(0o700)
