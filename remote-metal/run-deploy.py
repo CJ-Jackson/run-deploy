@@ -27,6 +27,7 @@ except IndexError:
     print("Must have two argument", file=sys.stderr)
     exit(102)
 
+
 def file_name_validation(value: str, name: str, flag: bool=False):
     extra = '.-_'
     if flag:
@@ -35,6 +36,7 @@ def file_name_validation(value: str, name: str, flag: bool=False):
     if not valid:
         print(f"{name} must be `ascii letters + digits + {extra}`")
         exit(102)
+
 
 file_name_validation(image_name, "image_name")
 

@@ -70,6 +70,8 @@ def file_name_validation(value: str, name: str, flag: bool=False):
     if not valid:
         print(f"{name} must be `ascii letters + digits + {extra}`")
         exit(102)
+
+
 def validate_input_image():
     if flag_image is None:
         print(f"'--image' is required for command: {arg_command}", file=sys.stderr)

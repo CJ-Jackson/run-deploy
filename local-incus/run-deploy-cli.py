@@ -50,6 +50,7 @@ def file_name_validation(value: str, name: str, flag: bool=False):
         print(f"{name} must be `ascii letters + digits + {extra}`")
         exit(102)
 
+
 def validate_input_image_incus():
     if flag_image is None or flag_incus is None:
         print(f"'--incus' and '--image' are required for command: {arg_command}", file=sys.stderr)
