@@ -21,10 +21,13 @@ except IndexError:
     print("Must have one argument", file=sys.stderr)
     exit(1)
 
-def file_name_validation(value: str, name: str):
-    valid = not set(value).difference(string.ascii_letters + string.digits + '.-_')
+def file_name_validation(value: str, name: str, flag: bool=True):
+    extra = '.-_'
+    if flag:
+        extra = '-_'
+    valid = not set(value).difference(string.ascii_letters + string.digits + extra)
     if not valid:
-        print(f"{name} must be `ascii letters + digits + .-_`")
+        print(f"{name} must be `ascii letters + digits + {extra}`")
         exit(102)
 
 file_name_validation(image_name, "image_name")
@@ -81,9 +84,9 @@ except (KeyError, json.JSONDecodeError):
     exit(108)
 
 # Sanity check
-file_name_validation(incus_name, "incus_name")
+file_name_validation(incus_name, "incus_name", True)
 file_name_validation(to_exec, "to_exec")
-file_name_validation(image_dir, "image_dir")
+file_name_validation(image_dir, "image_dir", True)
 
 # Create directory if not exist
 subprocess.run([

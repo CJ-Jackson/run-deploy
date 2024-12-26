@@ -27,10 +27,13 @@ except IndexError:
     print("Must have two argument", file=sys.stderr)
     exit(102)
 
-def file_name_validation(value: str, name: str):
-    valid = not set(value).difference(string.ascii_letters + string.digits + '.-_')
+def file_name_validation(value: str, name: str, flag: bool=True):
+    extra = '.-_'
+    if flag:
+        extra = '-_'
+    valid = not set(value).difference(string.ascii_letters + string.digits + extra)
     if not valid:
-        print(f"{name} must be `ascii letters + digits + .-_`")
+        print(f"{name} must be `ascii letters + digits + {extra}`")
         exit(102)
 
 file_name_validation(image_name, "image_name")
@@ -95,7 +98,7 @@ except (KeyError, json.JSONDecodeError):
 
 # Sanity check
 file_name_validation(to_exec, "to_exec")
-file_name_validation(image_dir, "image_dir")
+file_name_validation(image_dir, "image_dir", True)
 
 @dataclass(frozen=True)
 class Permission:

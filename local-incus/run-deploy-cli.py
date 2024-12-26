@@ -41,32 +41,35 @@ flag_incus = args.incus
 flag_image = args.image
 flag_revision = args.revision
 
-def file_name_validation(value: str, name: str):
-    valid = not set(value).difference(string.ascii_letters + string.digits + '.-_')
+def file_name_validation(value: str, name: str, flag: bool=True):
+    extra = '.-_'
+    if flag:
+        extra = '-_'
+    valid = not set(value).difference(string.ascii_letters + string.digits + extra)
     if not valid:
-        print(f"{name} must be `ascii letters + digits + .-_`")
+        print(f"{name} must be `ascii letters + digits + {extra}`")
         exit(102)
 
 def validate_input_image_incus():
     if flag_image is None or flag_incus is None:
         print(f"'--incus' and '--image' are required for command: {arg_command}", file=sys.stderr)
         exit(102)
-    file_name_validation(flag_image, "flag_image")
-    file_name_validation(flag_incus, "flag_incus")
+    file_name_validation(flag_image, "flag_image", True)
+    file_name_validation(flag_incus, "flag_incus", True)
 
 
 def validate_input_incus():
     if flag_incus is None:
         print(f"'--incus' is required for command: {arg_command}", file=sys.stderr)
         exit(102)
-    file_name_validation(flag_incus, "flag_incus")
+    file_name_validation(flag_incus, "flag_incus", True)
 
 
 def validate_input_revision():
     if flag_revision is None:
         print(f"'--revision' is required for command: {arg_command}", file=sys.stderr)
         exit(102)
-    file_name_validation(flag_revision, "flag_revision")
+    file_name_validation(flag_revision, "flag_revision", True)
 
 
 def get_image_path():
