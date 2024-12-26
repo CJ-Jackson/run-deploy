@@ -41,7 +41,7 @@ flag_incus = args.incus
 flag_image = args.image
 flag_revision = args.revision
 
-def file_name_validation(value: str, name: str, flag: bool=True):
+def file_name_validation(value: str, name: str, flag: bool=False):
     extra = '.-_'
     if flag:
         extra = '-_'

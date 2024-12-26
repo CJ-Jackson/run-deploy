@@ -73,7 +73,7 @@ flag_revision = args.revision
 flag_cmd = args.cmd
 
 
-def file_name_validation(value: str, name: str, flag: bool=True):
+def file_name_validation(value: str, name: str, flag: bool=False):
     extra = '.-_'
     if flag:
         extra = '-_'

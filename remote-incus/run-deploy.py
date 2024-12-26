@@ -28,7 +28,7 @@ except IndexError:
     print("Must have two argument", file=sys.stderr)
     exit(102)
 
-def file_name_validation(value: str, name: str, flag: bool=True):
+def file_name_validation(value: str, name: str, flag: bool=False):
     extra = '.-_'
     if flag:
         extra = '-_'
