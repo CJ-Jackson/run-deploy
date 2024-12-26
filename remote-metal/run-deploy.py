@@ -106,8 +106,11 @@ class Permission:
         if not os.path.exists(f"/opt/run-deploy/permission/{key_ref}.toml"):
             return cls(full=False)
         permission = {}
-        with open(f"/opt/run-deploy/permission/{key_ref}.toml", "rb") as f:
-            permission = tomllib.load(f)
+        try:
+            with open(f"/opt/run-deploy/permission/{key_ref}.toml", "rb") as f:
+                permission = tomllib.load(f)
+        except tomllib.TOMLDecodeError:
+            return cls(full=False)
         if permission.get("admin", False):
             return cls(admin=True, full=True)
         if permission.get("banned", False):
