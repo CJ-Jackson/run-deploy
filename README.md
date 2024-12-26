@@ -264,7 +264,7 @@ mount /mnt/example
 ```
 
 ### Note
-The squashfs exec script will need to execute the script on the system that contains the following.
+The squashfs exec script will need to execute the script on the system that contains the following. I would place it in `/opt/run-deploy/script/deploy/example`
 
 ```shell
 #!/bin/dash
@@ -272,4 +272,11 @@ systemctl stop example
 umount /mnt/example
 mount /mmt/example || exit 1
 systemctl start example
+```
+
+The squashfs exec will also need to do a symlink swap.
+```
+cd /opt/run-deploy/image/example
+ln -sf example-2024-12-12.squashfs example.squashfs
+/opt/run-deploy/script/deploy/example
 ```
