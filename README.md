@@ -1,7 +1,7 @@
 # run-deploy
 
 'run-deploy' is a daemonless and stateless deployment system that is quite simple, elegant and fun to use. It relies on
-the following sane open-soruce solution.
+the following sane open-source solution.
 
 * [SquashFS](https://en.wikipedia.org/wiki/SquashFS)
   * With the json manifest located inside the image `_deploy/push.json`
