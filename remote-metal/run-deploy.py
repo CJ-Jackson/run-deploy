@@ -71,10 +71,18 @@ data = {}
 with open("push.json", "r", encoding='utf-8') as f:
     data = json.load(f)
 
-data = data[socket.gethostname()]
-
-image_dir: str = data['image-dir'].strip()
-to_exec: str = data['exec'].strip()
+image_dir = ""
+to_exec = ""
+try:
+    data = data[socket.gethostname()]
+    image_dir  = data['image-dir'].strip()
+    to_exec = data['exec'].strip()
+except KeyError:
+    print("Manifest is not well-formed!", file=sys.stderr)
+    os.chdir('..')
+    shutil.rmtree(f"{image_name.removesuffix('.squashfs')}")
+    os.rmdir(mnt_point)
+    exit(108)
 
 # Sanity check
 valid = True
