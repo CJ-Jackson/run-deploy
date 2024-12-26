@@ -76,7 +76,7 @@ flag_cmd = args.cmd
 def file_name_validation(value: str, name: str):
     valid = not set(value).difference(string.ascii_letters + string.digits + '.-_')
     if not valid:
-        print(f"{name} must be `ascii + digits + .-_`")
+        print(f"{name} must be `ascii letters + digits + .-_`")
         exit(102)
 
 
