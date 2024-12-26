@@ -75,7 +75,7 @@ image_dir = ""
 to_exec = ""
 try:
     data = data[socket.gethostname()]
-    image_dir  = data['image-dir'].strip()
+    image_dir = data['image-dir'].strip()
     to_exec = data['exec'].strip()
 except KeyError:
     print("Manifest is not well-formed!", file=sys.stderr)
