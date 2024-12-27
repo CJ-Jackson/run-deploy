@@ -2,7 +2,8 @@
 Description=Clean stale minisig
 
 [Timer]
-OnCalendar=30 minutes
+OnActiveSec=30 minutes
+OnUnitActiveSec=30 minutes
 Persistent=true
 AccuracySec=1us
 RandomizedDelaySec=15m
