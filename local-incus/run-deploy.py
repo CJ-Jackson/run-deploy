@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import datetime
 import getpass
 import json
 import os.path
@@ -94,6 +95,19 @@ file_name_validation(image_dir, "image_dir", True)
 subprocess.run([
     "incus", "exec", incus_name, "--", "mkdir", "-p", f"/opt/run-deploy/image/{image_dir}"
 ], capture_output=True)
+
+if os.path.exists("/opt/run-deploy/options/strict"):
+    old_image_name = image_name
+    now = datetime.datetime.now(datetime.UTC)
+    image_name = f"{image_dir}-{now.year}-{now.month:02d}-{now.day:02d}_{now.hour:02d}-{now.minute:02d}-{now.second:02d}.squashfs"
+    shutil.move(old_image_name, image_name)
+    to_exec_path = pathlib.Path(to_exec)
+    to_exec_path.write_text(f"""#!/bin/dash
+cd /opt/run-deploy/image/{image_dir}
+ln -s {image_name} {image_dir}.squashfs
+/opt/run-deploy/script/deploy/{image_dir} || echo "/opt/run-deploy/script/deploy/{image_dir} not found!" && exit 0
+""", 'utf-8')
+    to_exec_path.chmod(0o755)
 
 # Upload Image to Incus container
 subprocess.run([
