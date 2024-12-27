@@ -1,0 +1,5 @@
+#!/bin/dash
+cd /tmp/run-deploy
+find . -name "*.minisig" -type f -mmin +5 -delete
+sleep 4
+exit 0

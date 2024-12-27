@@ -1,0 +1,7 @@
+[Unit]
+Description="Clean up old deploy from host system"
+
+[Service]
+User=root
+Type=oneshot
+ExecStart=/opt/run-deploy/script/run-deploy-clean-stale-minisig

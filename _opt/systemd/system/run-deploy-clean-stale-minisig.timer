@@ -1,0 +1,11 @@
+[Unit]
+Description=Clean stale minisig
+
+[Timer]
+OnCalendar=30 minutes
+Persistent=true
+AccuracySec=1us
+RandomizedDelaySec=15m
+
+[Install]
+WantedBy=timers.target
