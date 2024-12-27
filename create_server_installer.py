@@ -51,6 +51,10 @@ os.mkdir("opt/run-deploy/exec")
 os.mkdir("opt/run-deploy/minisign")
 os.mkdir("opt/run-deploy/ssh")
 os.mkdir("opt/run-deploy/script/deploy")
+os.mkdir("opt/run-deploy/options")
+
+# Enable strict mode by default
+pathlib.Path("opt/run-deploy/options/strict").write_text("strict", 'utf-8')
 
 doas_permission = []
 
