@@ -40,7 +40,7 @@ except subprocess.CalledProcessError as e:
 
 # Create the image
 image_name = subprocess.run([
-    "./create_image.py", hostname
+    "./create_image.py", "--hostname", hostname
 ], check=True, capture_output=True).stdout.decode('utf-8').strip()
 
 # Sign the image with the private key, so it can verified by the server with the corresponding public key.
