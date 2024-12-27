@@ -51,3 +51,8 @@ subprocess.run([
 subprocess.run([
     "systemctl", "start", os.path.basename(timer_name)
 ], check=True)
+
+exec_path = pathlib.Path(f"/opt/run-deploy/exec/spring-clean-incus-{arg_incus}")
+exec_path.write_text(f"""#!/bin/dash
+systemctl start {os.path.basename(service_name)}""", 'utf-8')
+exec_path.chmod(0o755)
