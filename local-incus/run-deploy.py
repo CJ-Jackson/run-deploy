@@ -96,6 +96,7 @@ subprocess.run([
     "incus", "exec", incus_name, "--", "mkdir", "-p", f"/opt/run-deploy/image/{image_dir}"
 ], capture_output=True)
 
+# Strict Mode
 if os.path.exists("/opt/run-deploy/options/strict"):
     old_image_name = image_name
     now = datetime.datetime.now(datetime.UTC)
@@ -104,7 +105,7 @@ if os.path.exists("/opt/run-deploy/options/strict"):
     to_exec_path = pathlib.Path(to_exec)
     to_exec_path.write_text(f"""#!/bin/dash
 cd /opt/run-deploy/image/{image_dir}
-ln -s {image_name} {image_dir}.squashfs
+ln -s {image_name} {image_dir}.squashfs || exit 1
 /opt/run-deploy/script/deploy/{image_dir} || echo "/opt/run-deploy/script/deploy/{image_dir} not found!" && exit 0
 """, 'utf-8')
     to_exec_path.chmod(0o755)
