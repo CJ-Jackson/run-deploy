@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import argparse
+import json
 import os.path
 import pathlib
 import string
@@ -8,6 +9,12 @@ import sys
 import tomllib
 from dataclasses import dataclass
 from typing import Self
+
+
+def error_and_exit(error_name: str, message: str):
+    json.dump({"error_name": error_name, "message": message}, sys.stderr, indent="\t")
+    exit(100)
+
 
 token_path = ""
 minisign_public_key_path = ""
@@ -18,18 +25,22 @@ try:
     token_path = f"/tmp/run-deploy/run-deploy-token-{token_ref}"
     minisign_public_key_path = f"/opt/run-deploy/minisign/{key_ref}.pub"
 except KeyError:
-    print("Must have env `RUN_DEPLOY_TOKEN` and `RUN_DEPLOY_KEY`")
-    exit(104)
+    error_and_exit(
+        "TOKEN_KEY",
+        "Must have env `RUN_DEPLOY_TOKEN` and `RUN_DEPLOY_KEY`"
+    )
 
 try:
     subprocess.run(["minisign", "-Vqm", token_path, "-p", minisign_public_key_path], check=True)
     os.remove(token_path)
     os.remove(f"{token_path}.minisig")
 except subprocess.CalledProcessError:
-    print(f"Invalid signature for '{token_path}'", file=sys.stderr)
     os.remove(token_path)
     os.remove(f"{token_path}.minisig")
-    exit(105)
+    error_and_exit(
+    "INVALID_SIGNATURE_AUTH",
+    f"Invalid signature for '{token_path}'"
+    )
 
 parser = argparse.ArgumentParser(description='Queries and operate run-deploy system')
 
@@ -68,28 +79,36 @@ def file_name_validation(value: str, name: str, flag: bool=False):
         extra = '-_'
     valid = not set(value).difference(string.ascii_letters + string.digits + extra)
     if not valid:
-        print(f"{name} must be `ascii letters + digits + {extra}`")
-        exit(102)
+        error_and_exit(
+            "FILE_NAME_VALIDATION",
+            f"{name} must be `ascii letters + digits + {extra}`"
+        )
 
 
 def validate_input_image():
     if flag_image is None:
-        print(f"'--image' is required for command: {arg_command}", file=sys.stderr)
-        exit(102)
+        error_and_exit(
+            "FLAG_VALIDATION",
+            f"'--image' is required for command: {arg_command}"
+        )
     file_name_validation(flag_image, "flag_image", True)
 
 
 def validate_input_revision():
     if flag_revision is None:
-        print(f"'--revision' is required for command: {arg_command}", file=sys.stderr)
-        exit(102)
+        error_and_exit(
+            "FLAG_VALIDATION",
+            f"'--revision' is required for command: {arg_command}"
+        )
     file_name_validation(flag_revision, "flag_revision", True)
 
 
 def validate_input_exec():
     if flag_cmd is None:
-        print(f"'--exec' is required for command: {arg_command}", file=sys.stderr)
-        exit(102)
+        error_and_exit(
+            "FLAG_VALIDATION",
+            f"'--exec' is required for command: {arg_command}"
+        )
     file_name_validation(flag_cmd, "flag_cmd", True)
 
 
@@ -118,8 +137,10 @@ class Permission:
         if permission.get("admin", False):
             return cls(admin=True, full=True, read=True)
         if permission.get("banned", False):
-            print("You are banned!")
-            exit(0)
+            error_and_exit(
+                "PERMISSION",
+                "You are banned!"
+            )
         if permission.get("full-access", False):
             return cls(full=True, read=True)
         overall_read_access = permission.get("read-access", False)
@@ -138,24 +159,28 @@ class Permission:
 
     def must_be_admin(self):
         if not self.admin:
-            print(f"You must be admin for command: {arg_command} ( image: {flag_image} )", file=sys.stderr)
-            exit(101)
+            error_and_exit(
+                "PERMISSION",
+                f"You must be admin for command: {arg_command} ( image: {flag_image} )"
+            )
 
     def must_be_full(self):
         if self.admin:
             return
         if not self.full:
-            print(
-                f"You don't have full permission for command: {arg_command} ( image: {flag_image} )", file=sys.stderr)
-            exit(101)
+            error_and_exit(
+                "PERMISSION",
+                f"You don't have full permission for command: {arg_command} ( image: {flag_image} )"
+            )
 
     def must_be_read(self):
         if self.admin or self.full:
             return
         if not self.read:
-            print(
-                f"You don't have read permission for command: {arg_command} ( image: {flag_image} )", file=sys.stderr)
-            exit(101)
+            error_and_exit(
+                "PERMISSION",
+                f"You don't have read permission for command: {arg_command} ( image: {flag_image} )"
+            )
 
 
 match arg_command:
@@ -239,5 +264,7 @@ match arg_command:
         for ex in exec_list:
             print(os.path.basename(ex))
     case _:
-        print(f"Command `{arg_command}` was not found!", file=sys.stderr)
-        exit(103)
+        error_and_exit(
+            "COMMAND_NOT_FOUND",
+            f"Command `{arg_command}` was not found!"
+        )

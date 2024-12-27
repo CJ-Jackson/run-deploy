@@ -11,6 +11,12 @@ import subprocess
 import sys
 import time
 
+
+def error_and_exit(error_name: str, message: str):
+    json.dump({"error_name": error_name, "message": message}, sys.stderr, indent="\t")
+    exit(100)
+
+
 base_dir = ""
 image_name = ""
 try:
@@ -19,8 +25,10 @@ try:
     base_dir = os.path.dirname(target_path)
     image_name = os.path.basename(target_path)
 except IndexError:
-    print("Must have one argument", file=sys.stderr)
-    exit(1)
+    error_and_exit(
+        "ARGUMENT",
+        "Must have one argument"
+    )
 
 
 def file_name_validation(value: str, name: str, flag: bool=False):
@@ -29,15 +37,19 @@ def file_name_validation(value: str, name: str, flag: bool=False):
         extra = '-_'
     valid = not set(value).difference(string.ascii_letters + string.digits + extra)
     if not valid:
-        print(f"{name} must be `ascii letters + digits + {extra}`")
-        exit(102)
+        error_and_exit(
+            "FILE_NAME_VALIDATION",
+            f"{name} must be `ascii letters + digits + {extra}`"
+        )
 
 
 file_name_validation(image_name, "image_name")
 
 if not image_name.endswith(".squashfs"):
-    print("Image name must end with '.squashfs'", file=sys.stderr)
-    exit(1)
+    error_and_exit(
+        "FILE_NAME_VALIDATION",
+        "Image name must end with '.squashfs'"
+    )
 
 os.chdir(base_dir)
 
@@ -47,17 +59,21 @@ os.mkdir(mnt_point, 0o700)
 try:
     subprocess.run(["squashfuse", image_name, mnt_point], check=True)
 except subprocess.CalledProcessError:
-    print(f"Unable to mount '{image_name}'!", file=sys.stderr)
     os.remove(image_name)
     os.rmdir(mnt_point)
-    exit(1)
+    error_and_exit(
+        "MOUNT",
+        f"Unable to mount '{image_name}'!"
+    )
 
 if not os.path.exists(f"{mnt_point}/_deploy/push.json"):
     subprocess.run(["umount", mnt_point])
     os.remove(image_name)
     os.rmdir(mnt_point)
-    print("'_deploy/push' does not exist", file=sys.stderr)
-    exit(1)
+    error_and_exit(
+        "MANIFEST_NOT_EXIST",
+        "'_deploy/push.json' does not exist"
+    )
 
 shutil.copytree(f"{mnt_point}/_deploy", image_name.removesuffix('.squashfs'))
 subprocess.run(["umount", mnt_point])
@@ -82,16 +98,36 @@ try:
     to_exec = data['exec'].strip()
     stamp = data.get("stamp", False)
 except (KeyError, json.JSONDecodeError):
-    print("Manifest is not well-formed!", file=sys.stderr)
     os.chdir('..')
     shutil.rmtree(f"{image_name.removesuffix('.squashfs')}")
     os.rmdir(mnt_point)
-    exit(108)
+    error_and_exit(
+        "MANIFEST_JSON",
+        "Manifest is not well-formed!"
+    )
 
 # Sanity check
 file_name_validation(incus_name, "incus_name", True)
 file_name_validation(to_exec, "to_exec")
 file_name_validation(image_dir, "image_dir", True)
+
+cleanup_dir = f"{image_name.removesuffix('.squashfs')}"
+
+
+def clean_up():
+    os.chdir('..')
+    shutil.rmtree(cleanup_dir)
+    os.rmdir(mnt_point)
+
+try:
+    subprocess.run([
+        "incus", "exec", incus_name, "--", "echo", "test"
+    ], check=True, capture_output=True)
+except subprocess.CalledProcessError:
+    error_and_exit(
+        "CONTAINER_NOT_EXIST",
+        f"Container '{incus_name}' does not exist"
+    )
 
 # Create directory if not exist
 subprocess.run([
@@ -116,6 +152,13 @@ ln -sf {image_name} {image_dir}.squashfs || exit 1
 """, 'utf-8')
     to_exec_path.chmod(0o755)
 
+if not os.path.exists(to_exec):
+    clean_up()
+    error_and_exit(
+        "EXEC_NOT_EXIST",
+        f"'{to_exec}' does not exist"
+    )
+
 # Upload Image to Incus container
 subprocess.run([
     "incus", "file", "push", "--uid", "0", "--gid", "0", image_name, f"{incus_name}/opt/run-deploy/image/{image_dir}/"
@@ -138,11 +181,15 @@ subprocess.run([
     "incus", "file", "push", "--uid", "0", "--gid", "0", f"{image_name.removesuffix('.squashfs')}.blame", f"{incus_name}/opt/run-deploy/image/{image_dir}/"
 ], check=True)
 
-os.chdir('..')
-shutil.rmtree(image_name_dir)
-os.rmdir(mnt_point)
+clean_up()
 
 # Exec
-subprocess.run([
-    "incus", "exec", incus_name, "--", f"/opt/run-deploy/image/{image_dir}/{image_name.removesuffix('.squashfs')}"
-], check=True)
+try:
+    subprocess.run([
+        "incus", "exec", incus_name, "--", f"/opt/run-deploy/image/{image_dir}/{image_name.removesuffix('.squashfs')}"
+    ], check=True)
+except subprocess.CalledProcessError as e:
+    error_and_exit(
+        "EXEC_FAIL",
+        f"Image script execution return error code {e.returncode}: {e.output.decode('utf-8')}"
+    )

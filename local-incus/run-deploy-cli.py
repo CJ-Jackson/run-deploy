@@ -1,9 +1,16 @@
 #!/usr/bin/env python3
 import argparse
+import json
 import os.path
 import string
 import subprocess
 import sys
+
+
+def error_and_exit(error_name: str, message: str):
+    json.dump({"error_name": error_name, "message": message}, sys.stderr, indent="\t")
+    exit(100)
+
 
 parser = argparse.ArgumentParser(description='Queries and operate run-deploy system')
 
@@ -47,29 +54,37 @@ def file_name_validation(value: str, name: str, flag: bool=False):
         extra = '-_'
     valid = not set(value).difference(string.ascii_letters + string.digits + extra)
     if not valid:
-        print(f"{name} must be `ascii letters + digits + {extra}`")
-        exit(102)
+        error_and_exit(
+            "FILE_NAME_VALIDATION",
+            f"{name} must be `ascii letters + digits + {extra}`"
+        )
 
 
 def validate_input_image_incus():
     if flag_image is None or flag_incus is None:
-        print(f"'--incus' and '--image' are required for command: {arg_command}", file=sys.stderr)
-        exit(102)
+        error_and_exit(
+            "FLAG_VALIDATION",
+            f"'--incus' and '--image' are required for command: {arg_command}"
+        )
     file_name_validation(flag_image, "flag_image", True)
     file_name_validation(flag_incus, "flag_incus", True)
 
 
 def validate_input_incus():
     if flag_incus is None:
-        print(f"'--incus' is required for command: {arg_command}", file=sys.stderr)
-        exit(102)
+        error_and_exit(
+            "FLAG_VALIDATION",
+            f"'--incus' is required for command: {arg_command}"
+        )
     file_name_validation(flag_incus, "flag_incus", True)
 
 
 def validate_input_revision():
     if flag_revision is None:
-        print(f"'--revision' is required for command: {arg_command}", file=sys.stderr)
-        exit(102)
+        error_and_exit(
+            "FLAG_VALIDATION",
+            f"'--revision' is required for command: {arg_command}"
+        )
     file_name_validation(flag_revision, "flag_revision", True)
 
 
@@ -143,5 +158,7 @@ match arg_command:
         except subprocess.CalledProcessError:
             print("")
     case _:
-        print(f"Command `{arg_command}` was not found!", file=sys.stderr)
-        exit(103)
+        error_and_exit(
+            "COMMAND_NOT_FOUND",
+            f"Command `{arg_command}` was not found!"
+        )
