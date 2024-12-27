@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import argparse
 import datetime
 import json
 import os
@@ -8,12 +9,12 @@ import subprocess
 import sys
 import time
 
-hostname = ""
-try:
-    hostname = sys.argv[1].strip()
-except IndexError:
-    print("Need server hostname", file=sys.stderr)
-    exit(1)
+
+parser = argparse.ArgumentParser(description="Create test image")
+parser.add_argument("--hostname", required=True)
+args = parser.parse_args()
+
+hostname = args.hostname
 
 project_path = os.path.dirname(os.path.abspath(__file__))
 
