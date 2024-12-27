@@ -98,6 +98,8 @@ subprocess.run([
     "incus", "exec", incus_name, "--", "mkdir", "-p", f"/opt/run-deploy/image/{image_dir}"
 ], capture_output=True)
 
+image_name_dir = f"{image_name.removesuffix('.squashfs')}"
+
 # Strict Mode
 if os.path.exists("/opt/run-deploy/options/strict"):
     old_image_name = image_name
@@ -109,7 +111,7 @@ if os.path.exists("/opt/run-deploy/options/strict"):
     to_exec_path = pathlib.Path(to_exec)
     to_exec_path.write_text(f"""#!/bin/dash
 cd /opt/run-deploy/image/{image_dir}
-ln -sf {image_name} {image_dir}.squashfs || rm {image_dir}.squashfs && ln -s {image_name} {image_dir}.squashfs || exit 1
+ln -sf {image_name} {image_dir}.squashfs || exit 1
 /opt/run-deploy/script/deploy/{image_dir} || echo "/opt/run-deploy/script/deploy/{image_dir} not found or incorrect permission!" && exit 0
 """, 'utf-8')
     to_exec_path.chmod(0o755)
@@ -136,11 +138,11 @@ subprocess.run([
     "incus", "file", "push", "--uid", "0", "--gid", "0", f"{image_name.removesuffix('.squashfs')}.blame", f"{incus_name}/opt/run-deploy/image/{image_dir}/"
 ], check=True)
 
+os.chdir('..')
+shutil.rmtree(image_name_dir)
+os.rmdir(mnt_point)
+
 # Exec
 subprocess.run([
     "incus", "exec", incus_name, "--", f"/opt/run-deploy/image/{image_dir}/{image_name.removesuffix('.squashfs')}"
 ], check=True)
-
-os.chdir('..')
-shutil.rmtree(f"{image_name.removesuffix('.squashfs')}")
-os.rmdir(mnt_point)
