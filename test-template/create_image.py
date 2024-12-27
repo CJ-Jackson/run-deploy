@@ -47,7 +47,8 @@ manifest_json = {
     hostname: {
         'incus-name': 'test',
         'image-dir': 'test',
-        'exec': 'init_script'
+        'exec': 'init_script',
+        'stamp': now.timestamp(),
     }
 }
 

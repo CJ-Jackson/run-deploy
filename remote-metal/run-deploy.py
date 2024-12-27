@@ -84,6 +84,7 @@ os.chdir(image_name.removesuffix('.squashfs'))
 
 image_dir = ""
 to_exec = ""
+stamp = False
 try:
     data = {}
     with open("push.json", "r", encoding='utf-8') as f:
@@ -92,6 +93,7 @@ try:
     data = data[socket.gethostname()]
     image_dir = data['image-dir'].strip()
     to_exec = data['exec'].strip()
+    stamp = data.get("stamp", False)
 except (KeyError, json.JSONDecodeError):
     print("Manifest is not well-formed!", file=sys.stderr)
     os.chdir('..')
@@ -157,6 +159,8 @@ os.makedirs(f"/opt/run-deploy/image/{image_dir}", exist_ok=True)
 if os.path.exists("/opt/run-deploy/options/strict"):
     old_image_name = image_name
     now = datetime.datetime.now(datetime.UTC)
+    if not stamp:
+        now = datetime.datetime.fromtimestamp(stamp, tz=datetime.UTC)
     image_name = f"{image_dir}-{now.year}-{now.month:02d}-{now.day:02d}_{now.hour:02d}-{now.minute:02d}-{now.second:02d}.squashfs"
     shutil.move(old_image_name, image_name)
     to_exec_path = pathlib.Path(to_exec)
