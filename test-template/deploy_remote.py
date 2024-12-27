@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import getpass
+import json
 import os
 import shutil
 import socket
@@ -60,12 +61,13 @@ try:
         f"/tmp/run-deploy/{os.path.basename(image_name)}", f"{getpass.getuser()}@{socket.gethostname()}"
     ], check=True)
 except subprocess.CalledProcessError as e:
-    if e.returncode == 101:
+    if e.returncode != 100 or json.loads(e.output.decode('utf-8')).get("error_name", "") != "EXEC_FAIL":
         shutil.rmtree(os.path.dirname(image_name))
-        exit(101)
+        exit(100)
     if edition == "remote-incus":
         last_deploy = subprocess.run([
-            "run-deploy-remote-cli", ssh_address, "revert", "--incus", "test", "--image", "test", "--revision", last_deploy
+            "run-deploy-remote-cli", ssh_address, "revert", "--incus", "test", "--image", "test", "--revision",
+            last_deploy
         ], check=True)
     else:
         last_deploy = subprocess.run([
