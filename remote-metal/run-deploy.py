@@ -166,8 +166,8 @@ if os.path.exists("/opt/run-deploy/options/strict"):
     to_exec_path = pathlib.Path(to_exec)
     to_exec_path.write_text(f"""#!/bin/dash
 cd /opt/run-deploy/image/{image_dir}
-ln -s {image_name} {image_dir}.squashfs || exit 1
-/opt/run-deploy/script/deploy/{image_dir} || echo "/opt/run-deploy/script/deploy/{image_dir} not found!" && exit 0
+ln -sf {image_name} {image_dir}.squashfs || rm {image_dir}.squashfs && ln -s {image_name} {image_dir}.squashfs || exit 1
+/opt/run-deploy/script/deploy/{image_dir} || echo "/opt/run-deploy/script/deploy/{image_dir} not found or incorrect permission!" && exit 0
 """, 'utf-8')
     to_exec_path.chmod(0o755)
 
