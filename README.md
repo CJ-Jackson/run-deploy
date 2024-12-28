@@ -59,7 +59,8 @@ manifest looks like the following.
   "server_hostname": {
     "incus-name": "container_name",
     "image-dir": "example",
-    "exec": "script_to_copy_and_exec"
+    "exec": "script_to_copy_and_exec",
+    "stamp": 123456
   }
 }
 ```
@@ -68,6 +69,8 @@ For `remote-metal` edition you can omit `incus-name`, but is required for
 `remote-incus` and `local-incus` edition :)
 
 You can have as many hostname as you want.
+
+`stamp` is optional.
 
 ## Dependencies
 
@@ -267,7 +270,7 @@ mount /mnt/example
 ```
 
 ### Note
-The squashfs exec script will need to execute the script on the system that contains the following. I would place it in `/opt/run-deploy/script/deploy/example`
+The squashfs exec script will need to execute the script on the system that contains the following. I would place it in `/opt/run-deploy/script/deploy/example` (Replace example with image name)
 
 ```shell
 #!/bin/dash
@@ -277,7 +280,7 @@ mount /mmt/example || exit 1
 systemctl start example
 ```
 
-The squashfs exec will also need to do a symlink swap.
+In quirk mode, the squashfs exec will also need to do a symlink swap. You will not need to do that in strict mode.
 ```
 cd /opt/run-deploy/image/example
 ln -sf example-2024-12-12.squashfs example.squashfs
