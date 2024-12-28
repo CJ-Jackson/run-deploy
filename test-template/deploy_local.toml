@@ -1,0 +1,5 @@
+#!/usr/bin/env run-deploy-local-toml
+
+create_image_script = "./create_image.toml"
+incus = "test"
+image = "test"

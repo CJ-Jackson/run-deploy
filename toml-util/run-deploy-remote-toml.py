@@ -5,6 +5,7 @@ import json
 import os
 import shutil
 import socket
+import string
 import subprocess
 import sys
 import tomllib
@@ -13,6 +14,18 @@ import tomllib
 def error_and_exit(error_name: str, message: str):
     json.dump({"error_name": error_name, "message": message}, sys.stderr, indent="\t")
     exit(100)
+
+
+def file_name_validation(value: str, name: str, flag: bool = False):
+    extra = '.-_'
+    if flag:
+        extra = '-_'
+    valid = not set(value).difference(string.ascii_letters + string.digits + extra)
+    if not valid:
+        error_and_exit(
+            "FILE_NAME_VALIDATION",
+            f"{name} must be `ascii letters + digits + {extra}`"
+        )
 
 
 parser = argparse.ArgumentParser(description="Process TOML based deploy")
@@ -69,6 +82,18 @@ except KeyError:
         "There isn't a flag set for either `flag_ssh` or `flag_ssh_metal`"
     )
 
+# Validate SSH
+for _, ssh_config in ssh.items():
+    if "image" not in ssh_config:
+        error_and_exit(
+            "SSH_CONFIG_IMAGE_REQUIRED",
+            "'image' is required in every `ssh_config`"
+        )
+    file_name_validation(ssh_config["image"], "ssh_config_image", flag=True)
+    if "incus" in ssh_config:
+        file_name_validation(ssh_config["incus"], "ssh_config_incus", flag=True)
+
+
 remote_cli = "run-deploy-remote-cli"
 remote_deploy = "/opt/run-deploy/bin/run-deploy"
 
@@ -110,11 +135,9 @@ except (subprocess.CalledProcessError, FileNotFoundError, PermissionError):
 image_name = ""
 try:
     image_name = subprocess.run([
-                                    toml_manifest.get("create_image_script")
-                                ] + image_args(), check=True, capture_output=True).stdout.decode('utf-8').strip()
+        toml_manifest.get("create_image_script")
+    ] + image_args(), check=True, capture_output=True).stdout.decode('utf-8').strip()
 except (subprocess.CalledProcessError, FileNotFoundError, PermissionError) as e:
-    print(e)
-    print(os.getcwd())
     error_and_exit(
         "IMAGE_CREATION",
         "Unable to execute image script"
