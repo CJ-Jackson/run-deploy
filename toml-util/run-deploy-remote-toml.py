@@ -45,7 +45,7 @@ try:
         toml_manifest = tomllib.load(f)
 except (OSError, tomllib.TOMLDecodeError):
     error_and_exit(
-        "TOML_MANIFIEST",
+        "TOML_MANIFEST",
         "Unable to open toml manifest"
     )
 
@@ -110,8 +110,8 @@ except (subprocess.CalledProcessError, FileNotFoundError, PermissionError):
 image_name = ""
 try:
     image_name = subprocess.run([
-        toml_manifest.get("create_image_script")
-    ] + image_args(), check=True, capture_output=True).stdout.decode('utf-8').strip()
+                                    toml_manifest.get("create_image_script")
+                                ] + image_args(), check=True, capture_output=True).stdout.decode('utf-8').strip()
 except (subprocess.CalledProcessError, FileNotFoundError, PermissionError) as e:
     print(e)
     print(os.getcwd())
@@ -153,7 +153,8 @@ try:
             current_remote_deploy = "/opt/run-deploy/bin/run-deploy-metal"
         output = subprocess.run([
             "ssh", ssh_address, "--", "doas", current_remote_deploy,
-            f"{ssh_config.get('upload', '/tmp/run-deploy')}/{base_image_name}", f"{getpass.getuser()}@{socket.gethostname()}"
+            f"{ssh_config.get('upload', '/tmp/run-deploy')}/{base_image_name}",
+            f"{getpass.getuser()}@{socket.gethostname()}"
         ], check=True, capture_output=True).stdout.decode('utf-8')
         print(output)
 except subprocess.CalledProcessError as e:
@@ -168,7 +169,8 @@ except subprocess.CalledProcessError as e:
             current_remote_cli = "run-deploy-remote-metal-cli"
         if ssh_config.get("incus", None):
             last_deploy = subprocess.run([
-                remote_cli, ssh_address, "revert", "--incus", ssh_config["incus"], "--image", ssh_config["image"], "--revision",
+                remote_cli, ssh_address, "revert", "--incus", ssh_config["incus"], "--image", ssh_config["image"],
+                "--revision",
                 last_deploy
             ], check=True)
         else:

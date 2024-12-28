@@ -1,6 +1,6 @@
 #!/usr/bin/env run-deploy-remote-toml
 
-create_image_script = "./create_image.py"
+create_image_script = "./create_image.toml"
 
 [ssh.__]
 incus = "test"

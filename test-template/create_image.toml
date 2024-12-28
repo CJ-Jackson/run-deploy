@@ -1,0 +1,7 @@
+#!/usr/bin/env run-deploy-image-toml
+
+name = "test"
+build_script = "./build.py"
+
+[manifest.__]
+incus-name = "test"
