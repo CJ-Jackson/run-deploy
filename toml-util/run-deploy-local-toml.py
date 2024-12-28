@@ -63,12 +63,12 @@ except (OSError, tomllib.TOMLDecodeError):
         "Unable to open toml manifest"
     )
 
-image_name = ""
+config_image_name = ""
 incus_name = ""
 try:
-    image_name = toml_manifest["image"]
+    config_image_name = toml_manifest["image"]
     incus_name = toml_manifest["incus"]
-    file_name_validation(image_name, "image_name", True)
+    file_name_validation(config_image_name, "image_name", True)
     file_name_validation(incus_name, "incus_name", True)
 except KeyError:
     error_and_exit(
@@ -85,7 +85,7 @@ last_deploy = ""
 
 try:
     last_deploy = subprocess.run([
-        local_cli, "last-deploy", "--incus", incus_name, "--image", image_name,
+        local_cli, "last-deploy", "--incus", incus_name, "--image", config_image_name,
     ], check=True, capture_output=True).stdout.decode('utf-8').strip()
 except subprocess.CalledProcessError as e:
     print(e.output.decode('utf-8'), file=sys.stderr)
@@ -135,7 +135,7 @@ except subprocess.CalledProcessError as e:
         shutil.rmtree(image_dir)
         exit(e.returncode)
     last_deploy = subprocess.run([
-        local_cli, "revert", "--incus", incus_name, "--image", image_name,
+        local_cli, "revert", "--incus", incus_name, "--image", config_image_name,
         "--revision",
         last_deploy
     ], check=True)
