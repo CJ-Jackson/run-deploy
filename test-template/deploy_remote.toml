@@ -2,9 +2,9 @@
 
 create_image_script = "./create_image.toml"
 
-[ssh.__]
-incus = "test"
 image = "test"
 
+[ssh.__]
+incus = "test"
+
 [ssh.__metal]
-image = "test"

@@ -67,6 +67,16 @@ except (OSError, tomllib.TOMLDecodeError):
         "Unable to open toml manifest"
     )
 
+config_image_name = ""
+try:
+    config_image_name = toml_manifest["image"]
+except KeyError:
+    error_and_exit(
+        "NO_IMAGE_NAME",
+        "Must have a image name"
+    )
+file_name_validation(config_image_name, "image", True)
+
 os.chdir(os.path.dirname(os.path.abspath(arg_toml)))
 
 ssh = toml_manifest.get("ssh", {})
@@ -89,12 +99,6 @@ except KeyError:
 
 # Validate SSH
 for _, ssh_config in ssh.items():
-    if "image" not in ssh_config:
-        error_and_exit(
-            "SSH_CONFIG_IMAGE_REQUIRED",
-            "'image' is required in every `ssh_config`"
-        )
-    file_name_validation(ssh_config["image"], "ssh_config_image", flag=True)
     if "incus" in ssh_config:
         file_name_validation(ssh_config["incus"], "ssh_config_incus", flag=True)
 
@@ -114,11 +118,11 @@ try:
     # Get the last deploy
     if top_ssh.get("incus", None):
         last_deploy = subprocess.run([
-            remote_cli, top_ssh_address, "last-deploy", "--incus", top_ssh["incus"], "--image", top_ssh["image"],
+            remote_cli, top_ssh_address, "last-deploy", "--incus", top_ssh["incus"], "--image", config_image_name,
         ], check=True, capture_output=True).stdout.decode('utf-8').strip()
     else:
         last_deploy = subprocess.run([
-            top_remote_cli, top_ssh_address, "last-deploy", "--image", top_ssh["image"],
+            top_remote_cli, top_ssh_address, "last-deploy", "--image", config_image_name,
         ], check=True, capture_output=True).stdout.decode('utf-8').strip()
 except subprocess.CalledProcessError as e:
     print(e.output.decode('utf-8'), file=sys.stderr)
@@ -204,13 +208,13 @@ except subprocess.CalledProcessError as e:
             current_remote_cli = "run-deploy-remote-metal-cli"
         if ssh_config.get("incus", None):
             last_deploy = subprocess.run([
-                remote_cli, ssh_address, "revert", "--incus", ssh_config["incus"], "--image", ssh_config["image"],
+                remote_cli, ssh_address, "revert", "--incus", ssh_config["incus"], "--image", config_image_name,
                 "--revision",
                 last_deploy
             ], check=True)
         else:
             last_deploy = subprocess.run([
-                current_remote_cli, ssh_address, "revert", "--image", ssh_config["image"], "--revision", last_deploy
+                current_remote_cli, ssh_address, "revert", "--image", config_image_name, "--revision", last_deploy
             ], check=True)
 
 # Finally remove the image from tmp.
