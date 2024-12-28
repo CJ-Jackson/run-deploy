@@ -107,6 +107,8 @@ for key, _ in manifest_json.items():
     manifest_json[key]["image-dir"] = image_name
     manifest_json[key]["exec"] = script_name
     manifest_json[key]["stamp"] = now.timestamp()
+    if "incus-name" in manifest_json[key]:
+        file_name_validation(manifest_json[key]["incus-name"], "incus-name", True)
 
 with open("mnt/_deploy/push.json", "w") as f:
     json.dump(manifest_json, f)
