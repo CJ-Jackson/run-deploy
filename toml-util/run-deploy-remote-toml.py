@@ -48,6 +48,11 @@ def image_args() -> list:
     if flag_image_arg is None:
         return return_args
     for image_arg in flag_image_arg:
+        if "=" not in image_arg:
+            error_and_exit(
+                "NO_EQUAL_IN_IMAGE_ARG",
+                "'image' must have a '=' sign"
+            )
         return_args += f"--{image_arg}".split("=", maxsplit=2)
     return return_args
 
