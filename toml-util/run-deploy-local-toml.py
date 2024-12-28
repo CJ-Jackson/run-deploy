@@ -113,10 +113,16 @@ except (subprocess.CalledProcessError, FileNotFoundError, PermissionError) as e:
 image_dir = os.path.dirname(image_name)
 
 try:
-    output = subprocess.run([
+    print(f"-- Deploying --", file=sys.stderr)
+    process_data = subprocess.run([
         local_deploy, image_name
-    ], check=True, capture_output=True).stdout.decode('utf-8').strip()
-    print(output)
+    ], check=True, capture_output=True)
+    output = process_data.stdout.decode('utf-8').strip()
+    if output:
+        print(output)
+    outerr = process_data.stderr.decode('utf-8').strip()
+    if outerr:
+        print(outerr)
 except subprocess.CalledProcessError as e:
     outerr = e.stderr.decode('utf-8')
     print(outerr, file=sys.stderr)

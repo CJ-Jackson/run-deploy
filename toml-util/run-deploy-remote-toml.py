@@ -157,6 +157,7 @@ except subprocess.CalledProcessError:
 # Upload image
 try:
     for ssh_address, ssh_config in ssh.items():
+        print(f"-- Uploading: {ssh_address} --", file=sys.stderr)
         subprocess.run([
             "scp", f"{image_name}.minisig", image_name, f"{ssh_address}:{ssh_config.get('upload', '/tmp/run-deploy')}"
         ], check=True)
@@ -174,12 +175,18 @@ try:
         current_remote_deploy = remote_deploy
         if ssh_config.get("metal", False):
             current_remote_deploy = "/opt/run-deploy/bin/run-deploy-metal"
-        output = subprocess.run([
+        print(f"-- Deploying: {ssh_address} --", file=sys.stderr)
+        process_data = subprocess.run([
             "ssh", ssh_address, "--", "doas", current_remote_deploy,
             f"{ssh_config.get('upload', '/tmp/run-deploy')}/{base_image_name}",
             f"{getpass.getuser()}@{socket.gethostname()}"
-        ], check=True, capture_output=True).stdout.decode('utf-8')
-        print(output)
+        ], check=True, capture_output=True)
+        output = process_data.stdout.decode('utf-8').strip()
+        if output:
+            print(output)
+        outerr = process_data.stderr.decode('utf-8').strip()
+        if outerr:
+            print(outerr)
 except subprocess.CalledProcessError as e:
     outerr = e.stderr.decode('utf-8')
     print(outerr, file=sys.stderr)
