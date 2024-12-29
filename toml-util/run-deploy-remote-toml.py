@@ -331,9 +331,12 @@ except (subprocess.CalledProcessError, FileNotFoundError, PermissionError) as e:
 
 # Sign the Image
 try:
+    extra = []
+    if os.path.exists(os.path.expanduser("~/.config/run-deploy/minisign.key")):
+        extra += ['-s', os.path.expanduser("~/.config/run-deploy/minisign.key")]
     subprocess.run([
-        "minisign", "-Sm", image_name
-    ], check=True, capture_output=True)
+        "minisign", "-S",
+    ] + extra + [ "-m", image_name ], check=True, capture_output=True)
 except subprocess.CalledProcessError:
     error_and_exit(
         "IMAGE_SIGNING",
