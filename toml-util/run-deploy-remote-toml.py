@@ -36,6 +36,10 @@ parser.add_argument("toml")
 parser.add_argument("--image-arg", action='append')
 parser.add_argument("--ssh")
 parser.add_argument("--ssh-metal")
+parser.add_argument("--list-revision", action='store_true')
+parser.add_argument("--last-deploy", action='store_true')
+parser.add_argument("--last-deploy-blame", action='store_true')
+parser.add_argument("--revert", metavar="REVISION")
 
 args = parser.parse_args()
 
@@ -43,6 +47,10 @@ arg_toml = args.toml
 flag_image_arg = args.image_arg
 flag_ssh = args.ssh
 flag_ssh_metal = args.ssh_metal
+flag_list_revision = args.list_revision
+flag_last_deploy = args.last_deploy
+flag_last_deploy_blame = args.last_deploy_blame
+flag_revert = args.revert
 
 
 def image_args() -> list:
@@ -153,6 +161,96 @@ if not deploy_data:
 
 remote_cli = "run-deploy-remote-cli"
 remote_deploy = "/opt/run-deploy/bin/run-deploy"
+
+
+# List revision
+if flag_list_revision:
+    try:
+        print("-- Listing Revision -- ", file=sys.stderr)
+        for ssh_address, ssh_config in deploy_data.ssh_configs.items():
+            print(f"-- Revision: {ssh_address}", file=sys.stderr)
+            current_remote_cli = remote_cli
+            if ssh_config.is_metal:
+                current_remote_cli = "run-deploy-remote-metal-cli"
+            extra = []
+            if ssh_config.incus_name:
+                extra += ["--incus", ssh_config.incus_name]
+            subprocess.run([
+                current_remote_cli, ssh_address, "list-revision", "--image", deploy_data.image_name
+            ]+extra, check=True)
+    except subprocess.CalledProcessError as e:
+        print("Did you check that you got the SSH Private Key in the agent? =D", file=sys.stderr)
+        exit(e.returncode)
+
+    exit(0)
+
+
+# List last deploy
+if flag_last_deploy:
+    try:
+        print("-- Listing Last Deploy -- ", file=sys.stderr)
+        for ssh_address, ssh_config in deploy_data.ssh_configs.items():
+            print(f"-- Last Deploy: {ssh_address}", file=sys.stderr)
+            current_remote_cli = remote_cli
+            if ssh_config.is_metal:
+                current_remote_cli = "run-deploy-remote-metal-cli"
+            extra = []
+            if ssh_config.incus_name:
+                extra += ["--incus", ssh_config.incus_name]
+            subprocess.run([
+                current_remote_cli, ssh_address, "last-deploy", "--image", deploy_data.image_name
+            ]+extra, check=True)
+    except subprocess.CalledProcessError as e:
+        print("Did you check that you got the SSH Private Key in the agent? =D", file=sys.stderr)
+        exit(e.returncode)
+
+    exit(0)
+
+
+# List last deploy blame
+if flag_last_deploy_blame:
+    try:
+        print("-- Listing Last Deploy Blame -- ", file=sys.stderr)
+        for ssh_address, ssh_config in deploy_data.ssh_configs.items():
+            print(f"-- Last Deploy Blame: {ssh_address}", file=sys.stderr)
+            current_remote_cli = remote_cli
+            if ssh_config.is_metal:
+                current_remote_cli = "run-deploy-remote-metal-cli"
+            extra = []
+            if ssh_config.incus_name:
+                extra += ["--incus", ssh_config.incus_name]
+            subprocess.run([
+                current_remote_cli, ssh_address, "last-deploy-blame", "--image", deploy_data.image_name
+            ]+extra, check=True)
+    except subprocess.CalledProcessError as e:
+        print("Did you check that you got the SSH Private Key in the agent? =D", file=sys.stderr)
+        exit(e.returncode)
+
+    exit(0)
+
+
+# Bulk revert
+if flag_revert:
+    file_name_validation(flag_revert, "flag_revert", True)
+    try:
+        print("-- Performing Bulk Revert -- ", file=sys.stderr)
+        for ssh_address, ssh_config in deploy_data.ssh_configs.items():
+            print(f"-- Last Deploy Blame: {ssh_address}", file=sys.stderr)
+            current_remote_cli = remote_cli
+            if ssh_config.is_metal:
+                current_remote_cli = "run-deploy-remote-metal-cli"
+            extra = []
+            if ssh_config.incus_name:
+                extra += ["--incus", ssh_config.incus_name]
+            subprocess.run([
+                current_remote_cli, ssh_address, "revert", "--image", deploy_data.image_name, "--revision", flag_revert
+            ]+extra, check=True)
+    except subprocess.CalledProcessError as e:
+        print("Did you check that you got the SSH Private Key in the agent? =D", file=sys.stderr)
+        exit(e.returncode)
+
+    exit(0)
+
 
 try:
     print("-- Checking Permission --", file=sys.stderr)
