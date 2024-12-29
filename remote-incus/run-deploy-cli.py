@@ -207,6 +207,9 @@ class Permission:
                 f"You don't have read permission for command: {arg_command} ( container: {flag_incus}, image: {flag_image} )"
             )
 
+    def output_json(self):
+        json.dump(self, sys.stdout, indent="\t")
+
 command_dict: dict = {}
 
 
@@ -317,6 +320,15 @@ def command_list_exec() -> str:
 
 
 command_dict["list-exec"] = command_list_exec
+
+
+def command_permission_json() -> str:
+    validate_input_image_incus()
+    Permission.create().output_json()
+    return ""
+
+
+command_dict["permission-json"] = command_permission_json
 
 try:
     cmd_output = command_dict[arg_command]()
