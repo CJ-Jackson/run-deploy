@@ -183,7 +183,11 @@ class Permission:
             )
 
     def output_json(self):
-        json.dump(self, sys.stdout, indent="\t")
+        json.dump({
+            "admin": self.admin,
+            "full": self.full,
+            "read": self.read
+        }, sys.stdout, indent="\t")
 
 
 command_dict: dict = {}
