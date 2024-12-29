@@ -179,6 +179,7 @@ try:
         exit(101)
 except subprocess.CalledProcessError as e:
     print(e.output.decode('utf-8'), file=sys.stderr)
+    print("Did you check that you got the SSH Private Key in the agent? =D", file=sys.stderr)
     exit(e.returncode)
 except json.JSONDecodeError:
     error_and_exit("JSON_PERMISSION", "Unable to decode permission")
