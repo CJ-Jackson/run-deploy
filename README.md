@@ -16,38 +16,80 @@ the following sane open-source solution.
 
 ## How it works
 
-### For local machine
+First you need a build script for image building, for now we create a dummy.
 
-```shell
-#!/bin/sh
+File: `build.py`
+```python
+#!/usr/bin/env python3
+import os
+import shutil
+import sys
 
-# Create the image
-image_location=$(./create_image.py)
-
-# Deploy the image
-run-deploy $image_location
-# It will move the image to `/opt/run-deploy/image/{image_dir}`
+project_path = ""
+try:
+    project_path = os.environ["RUN_DEPLOY_PROJECT_PATH"]
+except KeyError:
+    print("RUN_DEPLOY_PROJECT_PATH is missing", file=sys.stderr)
+    exit(1)
 ```
+Give it execute right `chmod 755 build.py`
 
-### For remote machine
+Now we need to create the following
+File: `create_image.toml`
+```toml
+#!/usr/bin/env run-deploy-image-toml
 
-```shell
-#!/bin/sh
+# Image name
+name = "example"
+# The location is relative to toml file
+build_script = "./build.py"
 
-# Create the image (on Local Machine)
-image_location=$(./create_image.py)
-
-# Sign the image (on Local Machine)
-minisign -Sm $image_location
-
-# Upload the image and signature
-scp $image_location ${image_location}.minisig "deploy@example.com:/tmp/run-deploy"
-
-# Deploy the image,
-ssh deploy@example.com -- doas /opt/run-deploy/bin/run-deploy "/tmp/run-deploy/$(basename $image_location)" "$(whoami)@$(hostname)"
-
-# "$(whoami)@$(hostname)" is used as public key and permission references.
+# The hostname has to match the hostname of where it getting deployed
+[manifest.hostname]
+# Name of incus container
+incus_name = "example"
 ```
+Give it execute right `chmod 755 create_image.toml`
+You can also test the image building by running `./create_image.toml`
+
+Now we the toml file for deploy, this is for the local machine
+
+File: `deploy_local.toml`
+```toml
+#!/usr/bin/env run-deploy-local-toml
+
+# Image creation script to execute
+create_image_script = "./create_image.toml"
+
+incus = "example"
+image = "example"
+```
+Give it execute right `chmod 755 deploy_local.toml`
+Let deploy to local machine by running `./deploy_local.toml`
+
+For remote deploy we need to create the following TOML.
+
+File: `deploy_remote.toml`
+```toml
+#!/usr/bin/env run-deploy-remote-toml
+
+# Image creation script to execute
+create_image_script = "./create_image.toml"
+
+# Image name (Mandatory)
+image = "example"
+
+# SSH Config, at least one is required
+[ssh.'username@deploy.example-1.com']
+# Mandatory for remote-incus
+incus = "example"
+```
+Give it execute right `chmod 755 deploy_remote.toml`
+Let deploy to remote machine by running `./deploy_remote.toml`
+
+That is the jist of it. Really clean and elegant isn't it? =D
+
+[Click here for more detail on toml-util](toml-util/README.md)
 
 ## Image Manifest
 
@@ -107,6 +149,10 @@ Run `client/install.py` as root
 ### local-incus
 
 Run `local-incus/install.py` as root
+
+### toml-util
+
+Run `toml-util/install.py` as root
 
 ### For servers
 
@@ -288,3 +334,5 @@ cd /opt/run-deploy/image/example
 ln -sf example-2024-12-12.squashfs example.squashfs
 /opt/run-deploy/script/deploy/example
 ```
+
+Strict mode will write it own script and is the default, Quirk mode will let you write you own script that is stored in the image, not recommended as it will run the script in root.
