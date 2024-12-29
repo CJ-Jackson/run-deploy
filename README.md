@@ -174,14 +174,15 @@ Queries and operate run-deploy system
 positional arguments:
   command              Commands: edition, exec, last-deploy, last-deploy-
                        blame, list-revision, revert, list-incus, list-image,
-                       list-exec
+                       list-exec, permission-json
 
 options:
   -h, --help           show this help message and exit
   --incus INCUS        Required for: exec, last-deploy, last-deploy-blame,
-                       list-revision, revert, list-image, list-exec
+                       list-revision, revert, list-image, list-exec,
+                       permission-json
   --image IMAGE        Required for: last-deploy, last-deploy-blame, list-
-                       revision, revert
+                       revision, revert, permission-json
   --revision REVISION  Required for: revert
   --cmd CMD            Required for: exec
 ```
@@ -196,12 +197,13 @@ Queries and operate run-deploy system
 
 positional arguments:
   command              Commands: edition, exec, last-deploy, last-deploy-
-                       blame, list-revision, revert, list-image, list-exec
+                       blame, list-revision, revert, list-image, list-exec,
+                       permission-json
 
 options:
   -h, --help           show this help message and exit
   --image IMAGE        Required for: last-deploy, last-deploy-blame, list-
-                       revision, revert
+                       revision, revert, permission-json
   --revision REVISION  Required for: revert
   --cmd CMD            Required for: exec
 ```
