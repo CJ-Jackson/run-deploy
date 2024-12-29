@@ -186,7 +186,7 @@ and you should be ready.
 If you want you can test it.
 
 ```shell
-test-template/deploy_remote.py server_hostname deploy@example.com
+test-template/deploy_remote.toml --ssh deploy@example.com --image-arg hostname=server_hostname
 ```
 
 ## CLI
