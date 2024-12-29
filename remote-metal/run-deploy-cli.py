@@ -25,11 +25,21 @@ def validate_key_ref(value: str):
         )
 
 
+def validate_token_ref(value: str):
+    valid = not set(value).difference(string.ascii_letters + string.digits)
+    if not valid:
+        error_and_exit(
+            "TOKEN_REF_VALIDATION",
+            "Key ref must be `ascii letters + digits`"
+        )
+
+
 token_path = ""
 minisign_public_key_path = ""
 try:
     token_ref = os.environ['RUN_DEPLOY_TOKEN'].strip()
     key_ref = os.environ['RUN_DEPLOY_KEY'].strip()
+    validate_token_ref(token_ref)
     validate_key_ref(key_ref)
 
     token_path = f"/tmp/run-deploy/run-deploy-token-{token_ref}"
