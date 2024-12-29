@@ -20,12 +20,22 @@ def error_and_exit(error_name: str, message: str):
     exit(100)
 
 
+def validate_key_ref(value: str):
+    valid = not set(value).difference(string.ascii_letters + string.digits + '@_-.')
+    if not valid:
+        error_and_exit(
+            "KEY_REF_VALIDATION",
+            "Key ref must be `ascii letters + digits + @_-.`"
+        )
+
+
 base_dir = ""
 image_name = ""
 minisign_public_key_path = ""
 try:
     target_path = sys.argv[1].strip()
     key_ref = sys.argv[2].strip()
+    validate_key_ref(key_ref)
 
     base_dir = os.path.dirname(target_path)
     image_name = os.path.basename(target_path)

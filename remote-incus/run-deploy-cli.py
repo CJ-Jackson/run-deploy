@@ -15,11 +15,21 @@ def error_and_exit(error_name: str, message: str):
     exit(100)
 
 
+def validate_key_ref(value: str):
+    valid = not set(value).difference(string.ascii_letters + string.digits + '@_-.')
+    if not valid:
+        error_and_exit(
+            "KEY_REF_VALIDATION",
+            "Key ref must be `ascii letters + digits + @_-.`"
+        )
+
+
 token_path = ""
 minisign_public_key_path = ""
 try:
     token_ref = os.environ['RUN_DEPLOY_TOKEN'].strip()
     key_ref = os.environ['RUN_DEPLOY_KEY'].strip()
+    validate_key_ref(key_ref)
 
     token_path = f"/tmp/run-deploy/run-deploy-token-{token_ref}"
     minisign_public_key_path = f"/opt/run-deploy/minisign/{key_ref}.pub"
