@@ -151,7 +151,7 @@ chmod 755 deploy_remote.toml
 ### CLI
 ```
 # ./deploy_remote.toml --help
-usage: run-deploy-remote-toml [-h] [--image-arg IMAGE_ARG] [--ssh SSH] [--ssh-metal SSH_METAL] toml
+usage: run-deploy-remote-toml [-h] [--image-arg IMAGE_ARG] [--ssh SSH] [--ssh-metal SSH_METAL] [--list-revision] [--last-deploy] [--last-deploy-blame] [--revert REVISION] toml
 
 Process TOML based deploy
 
@@ -163,6 +163,10 @@ options:
   --image-arg IMAGE_ARG
   --ssh SSH
   --ssh-metal SSH_METAL
+  --list-revision
+  --last-deploy
+  --last-deploy-blame
+  --revert REVISION
 ```
 
 ## Template
