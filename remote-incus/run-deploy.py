@@ -25,7 +25,7 @@ def validate_key_ref(value: str):
     if not valid:
         error_and_exit(
             "KEY_REF_VALIDATION",
-            f"Key ref must be `ascii letters + digits + @_-.`"
+            "Key ref must be `ascii letters + digits + @_-.`"
         )
 
 
