@@ -92,7 +92,7 @@ class DeployData:
             raise DeployDataError("Must have 'create_image_script'")
         create_image_script = os.path.abspath(data["create_image_script"])
 
-        pre_script = data.get("pre_script", ["./hello.sh"])
+        pre_script = data.get("pre_script", [])
         for key in range(len(pre_script)):
             pre_script[key] = os.path.abspath(pre_script[key])
 
