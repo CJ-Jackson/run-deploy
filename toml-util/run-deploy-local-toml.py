@@ -1,15 +1,14 @@
 #!/usr/bin/env python3
 import argparse
-import getpass
 import json
 import os
 import shutil
-import socket
 import string
 import subprocess
 import sys
 import tomllib
-
+from dataclasses import dataclass
+from typing import Self
 
 def error_and_exit(error_name: str, message: str):
     json.dump({"error_name": error_name, "message": message}, sys.stderr, indent="\t")
@@ -63,20 +62,54 @@ except (OSError, tomllib.TOMLDecodeError):
         "Unable to open toml manifest"
     )
 
-config_image_name = ""
-incus_name = ""
-try:
-    config_image_name = toml_manifest["image"]
-    incus_name = toml_manifest["incus"]
-    file_name_validation(config_image_name, "image_name", True)
-    file_name_validation(incus_name, "incus_name", True)
-except KeyError:
-    error_and_exit(
-        "IMAGE_INCUS_REQUIRED",
-        "'image' and 'incus' are required"
-    )
-
 os.chdir(os.path.dirname(os.path.abspath(arg_toml)))
+
+
+class DeployDataError(Exception): pass
+
+
+@dataclass(frozen=True)
+class DeployData:
+    incus_name: str
+    image_name: str
+    create_image_script: str
+    pre_script: tuple = ()
+
+
+    @classmethod
+    def create(cls, data: dict) -> Self:
+        if "incus" not in data:
+            raise DeployDataError("Must have 'incus'")
+        incus_name = data["incus"]
+        file_name_validation(incus_name, "incus", True)
+
+        if "image" not in data:
+            raise DeployDataError("Must have 'image'")
+        image_name = data["image"]
+        file_name_validation(image_name, "image", True)
+
+        if "create_image_script" not in data:
+            raise DeployDataError("Must have 'create_image_script'")
+        create_image_script = os.path.abspath(data["create_image_script"])
+
+        pre_script = data.get("pre_script", ["./hello.sh"])
+        for key in range(len(pre_script)):
+            pre_script[key] = os.path.abspath(pre_script[key])
+
+        return cls(
+            incus_name=incus_name,
+            image_name=image_name,
+            create_image_script=create_image_script,
+            pre_script=tuple(pre_script)
+        )
+
+deploy_data = None
+try:
+    deploy_data = DeployData.create(toml_manifest)
+except DeployDataError as e:
+    error_and_exit("DEPLOY_DATA_ERROR", e.__str__())
+if not deploy_data:
+    exit(0)
 
 local_cli = "run-deploy-cli"
 local_deploy = "/opt/run-deploy/bin/run-deploy"
@@ -85,7 +118,7 @@ last_deploy = ""
 
 try:
     last_deploy = subprocess.run([
-        local_cli, "last-deploy", "--incus", incus_name, "--image", config_image_name,
+        local_cli, "last-deploy", "--incus", deploy_data.incus_name, "--image", deploy_data.image_name,
     ], check=True, capture_output=True).stdout.decode('utf-8').strip()
 except subprocess.CalledProcessError as e:
     print(e.output.decode('utf-8'), file=sys.stderr)
@@ -93,7 +126,7 @@ except subprocess.CalledProcessError as e:
 
 # Pre Script
 try:
-    for script in toml_manifest.get('pre_script', []):
+    for script in list(deploy_data.pre_script):
         subprocess.run([
             script
         ], check=True)
@@ -107,7 +140,7 @@ except (subprocess.CalledProcessError, FileNotFoundError, PermissionError):
 image_name = ""
 try:
     image_name = subprocess.run([
-        toml_manifest.get("create_image_script")
+        deploy_data.create_image_script
     ] + image_args(), check=True, capture_output=True).stdout.decode('utf-8').strip()
 except (subprocess.CalledProcessError, FileNotFoundError, PermissionError) as e:
     error_and_exit(
@@ -134,8 +167,8 @@ except subprocess.CalledProcessError as e:
     if e.returncode != 100 or json.loads(outerr).get("error_name", "") != "EXEC_FAIL":
         shutil.rmtree(image_dir)
         exit(e.returncode)
-    last_deploy = subprocess.run([
-        local_cli, "revert", "--incus", incus_name, "--image", config_image_name,
+    subprocess.run([
+        local_cli, "revert", "--incus", deploy_data.incus_name, "--image", deploy_data.image_name,
         "--revision",
         last_deploy
     ], check=True)

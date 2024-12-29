@@ -50,13 +50,14 @@ except (OSError, tomllib.TOMLDecodeError):
         "Unable to open toml manifest"
     )
 
+project_path = os.path.dirname(os.path.abspath(arg_toml))
+os.chdir(project_path)
 
-class ManifestDataError(Exception):
-    pass
+
+class ManifestDataError(Exception): pass
 
 
-class BuildDataError(Exception):
-    pass
+class BuildDataError(Exception): pass
 
 
 @dataclass()
@@ -68,7 +69,7 @@ class ManifestData:
 
     @classmethod
     def create(cls, data: dict) -> Self:
-        incus_name = incus_name=data.get("incus-name", "")
+        incus_name = incus_name = data.get("incus-name", "")
         if incus_name:
             file_name_validation(incus_name, "incus-name", True)
         return cls(incus_name)
@@ -125,13 +126,11 @@ class BuildData:
             tmp_locaiton=data.get("tmp_location", "/tmp")
         )
 
-
     def make_manifest_json_dict(self) -> dict:
         data = {}
         for key, value in self.manifest.items():
             data[key] = value.make_json_dict()
         return data
-
 
     def update_manifest(self, script_name: str, stamp: float):
         for _, value in self.manifest.items():
@@ -139,24 +138,16 @@ class BuildData:
             value.exec = script_name
             value.stamp = stamp
 
+
 build_data = None
 try:
     build_data = BuildData.create(toml_manifest)
 except ManifestDataError as e:
-    error_and_exit(
-        "MANIFEST_DATA_ERROR",
-        e.__str__()
-    )
+    error_and_exit("MANIFEST_DATA_ERROR", e.__str__())
 except BuildDataError as e:
-    error_and_exit(
-        "BUILD_DATA_ERROR",
-        e.__str__()
-    )
+    error_and_exit("BUILD_DATA_ERROR", e.__str__())
 if not build_data:
     exit(0)
-
-project_path = os.path.dirname(os.path.abspath(arg_toml))
-os.chdir(project_path)
 
 tmp_dir = f"{build_data.tmp_locaiton}/run-deploy-image-{build_data.name}-{time.time()}"
 os.mkdir(tmp_dir, 0o700)
