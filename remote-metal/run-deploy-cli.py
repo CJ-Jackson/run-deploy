@@ -38,8 +38,8 @@ except subprocess.CalledProcessError:
     os.remove(token_path)
     os.remove(f"{token_path}.minisig")
     error_and_exit(
-    "INVALID_SIGNATURE_AUTH",
-    f"Invalid signature for '{token_path}'"
+        "INVALID_SIGNATURE_AUTH",
+        f"Invalid signature for '{token_path}'"
     )
 
 parser = argparse.ArgumentParser(description='Queries and operate run-deploy system')
@@ -73,7 +73,7 @@ flag_revision = args.revision
 flag_cmd = args.cmd
 
 
-def file_name_validation(value: str, name: str, flag: bool=False):
+def file_name_validation(value: str, name: str, flag: bool = False):
     extra = '.-_'
     if flag:
         extra = '-_'
@@ -183,88 +183,125 @@ class Permission:
             )
 
 
-match arg_command:
-    case "edition":
-        print("remote-metal")
-    case "last-deploy":
-        validate_input_image()
-        Permission.create().must_be_read()
-        image_path = get_image_path()
-        if os.path.exists(f"{image_path}/{flag_image}.squashfs"):
-            print(os.path.basename(os.path.realpath(f"{image_path}/{flag_image}.squashfs")).removesuffix('.squashfs'))
-        else:
-            print("There isn't a last deploy", file=sys.stderr)
-            exit(0)
-    case "last-deploy-blame":
-        validate_input_image()
-        Permission.create().must_be_read()
-        image_path = get_image_path()
-        if os.path.exists(f"{image_path}/{flag_image}.squashfs"):
-            last_path = os.path.realpath(f"{image_path}/{flag_image}.squashfs").removesuffix('.squashfs')
-            print(pathlib.Path(f"{last_path}.blame").read_text('utf-8'))
-        else:
-            print("There isn't a last deploy", file=sys.stderr)
-            exit(0)
-    case "list-revision":
-        validate_input_image()
-        Permission.create().must_be_read()
-        image_path = get_image_path()
-        last_path = ""
-        if os.path.exists(f"{image_path}/{flag_image}.squashfs"):
-            last_path = os.path.basename(os.path.realpath(f"{image_path}/{flag_image}.squashfs")).removesuffix(
-                '.squashfs')
-        else:
-            print("There isn't a last deploy", file=sys.stderr)
-            exit(0)
-        revision = list(pathlib.Path(image_path).glob(f'*.blame'))
-        for index in range(len(revision)):
-            flag_revision = str(revision[index]).removesuffix('.blame')
-            blame = pathlib.Path(f"{flag_revision}.blame").read_text('utf-8')
-            flag_revision = os.path.basename(flag_revision)
-            current = ""
-            if flag_revision == last_path:
-                current = "     *CURRENT*"
-            revision[index] = f"{flag_revision}   blame: {blame}{current}"
-        revision.sort()
-        revision = list(reversed(revision))
-        for rev in revision:
-            print(rev)
-    case "revert":
-        validate_input_image()
-        validate_input_revision()
-        Permission.create().must_be_full()
-        image_path = get_image_path()
+command_dict: dict = {}
+
+
+def command_edition() -> str:
+    return "remote-metal"
+
+
+command_dict["edition"] = command_edition
+
+
+def command_last_deploy(fullpath: bool = False) -> str:
+    validate_input_image()
+    Permission.create().must_be_read()
+    image_path = get_image_path()
+    if os.path.exists(f"{image_path}/{flag_image}.squashfs"):
+        if fullpath:
+            return os.path.realpath(f"{image_path}/{flag_image}.squashfs").removesuffix('.squashfs')
+        return os.path.basename(os.path.realpath(f"{image_path}/{flag_image}.squashfs")).removesuffix('.squashfs')
+    else:
+        print("There isn't a last deploy", file=sys.stderr)
+        exit(0)
+
+
+command_dict["last-deploy"] = command_last_deploy
+
+
+def command_last_deploy_blame() -> str:
+    last_path = command_last_deploy(True)
+    return pathlib.Path(f"{last_path}.blame").read_text('utf-8')
+
+
+command_dict["last-deploy-blame"] = command_last_deploy_blame
+
+
+def command_list_revision() -> str:
+    last_path = command_last_deploy()
+    image_path = get_image_path()
+    revision = list(pathlib.Path(image_path).glob(f'*.blame'))
+    for index in range(len(revision)):
+        flag_revision = str(revision[index]).removesuffix('.blame')
+        blame = pathlib.Path(f"{flag_revision}.blame").read_text('utf-8')
+        flag_revision = os.path.basename(flag_revision)
+        current = ""
+        if flag_revision == last_path:
+            current = "     *CURRENT*"
+        revision[index] = f"{flag_revision}   blame: {blame}{current}"
+    revision.sort()
+    revision = list(reversed(revision))
+    return "\n".join(revision)
+
+
+command_dict["list-revision"] = command_list_revision
+
+
+def command_revert() -> str:
+    validate_input_image()
+    validate_input_revision()
+    Permission.create().must_be_full()
+    image_path = get_image_path()
+    subprocess.run([
+        f"{image_path}/{flag_revision}"
+    ], check=True)
+    return ""
+
+
+command_dict["revert"] = command_revert
+
+
+def command_list_image() -> str:
+    Permission.create().must_be_read()
+    images = list(pathlib.Path("/opt/run-deploy/image").glob('*'))
+    images.sort()
+    clean_image = []
+    for image in images:
+        clean_image.append(os.path.basename(image))
+    return "\n".join(clean_image)
+
+
+command_dict["list-image"] = command_list_image
+
+
+def command_exec() -> str:
+    validate_input_exec()
+    Permission.create().must_be_admin()
+    try:
         subprocess.run([
-            f"{image_path}/{flag_revision}"
+            f"/opt/run-deploy/exec/{flag_cmd}"
         ], check=True)
-    case "list-image":
-        Permission.create().must_be_read()
-        images = list(pathlib.Path("/opt/run-deploy/image").glob('*'))
-        images.sort()
-        for image in images:
-            print(os.path.basename(image))
-    case "exec":
-        validate_input_exec()
-        Permission.create().must_be_admin()
-        try:
-            subprocess.run([
-                f"/opt/run-deploy/exec/{flag_cmd}"
-            ], check=True)
-        except FileNotFoundError:
-            print("File Not Found", file=sys.stderr)
-            exit(127)
-        except PermissionError as e:
-            print("Permission Error", file=sys.stderr)
-            exit(13)
-        except subprocess.CalledProcessError as e:
-            exit(e.returncode)
-    case "list-exec":
-        Permission.create().must_be_admin()
-        exec_list = pathlib.Path("/opt/run-deploy/exec").glob('*')
-        for ex in exec_list:
-            print(os.path.basename(ex))
-    case _:
-        error_and_exit(
-            "COMMAND_NOT_FOUND",
-            f"Command `{arg_command}` was not found!"
-        )
+    except FileNotFoundError:
+        print("File Not Found", file=sys.stderr)
+        exit(127)
+    except PermissionError as e:
+        print("Permission Error", file=sys.stderr)
+        exit(13)
+    except subprocess.CalledProcessError as e:
+        exit(e.returncode)
+    return ""
+
+
+command_dict["exec"] = command_exec
+
+
+def command_list_exec() -> str:
+    Permission.create().must_be_admin()
+    exec_list = pathlib.Path("/opt/run-deploy/exec").glob('*')
+    clean_exec_list = []
+    for ex in exec_list:
+        clean_exec_list.append(os.path.basename(ex))
+    return "\n"
+
+
+command_dict["list-exec"] = command_list_exec
+
+try:
+    cmd_output = command_dict[arg_command]()
+    if cmd_output:
+        print(cmd_output)
+except KeyError:
+    error_and_exit(
+        "COMMAND_NOT_FOUND",
+        f"Command `{arg_command}` was not found!"
+    )
