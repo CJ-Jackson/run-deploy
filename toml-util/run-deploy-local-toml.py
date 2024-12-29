@@ -124,6 +124,9 @@ except subprocess.CalledProcessError as e:
     print(e.output.decode('utf-8'), file=sys.stderr)
     exit(e.returncode)
 
+if last_deploy:
+    print(f"-- Last deploy is: {last_deploy}", file=sys.stderr)
+
 # Pre Script
 try:
     for script in list(deploy_data.pre_script):
