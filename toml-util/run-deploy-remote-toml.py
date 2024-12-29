@@ -146,6 +146,8 @@ try:
     deploy_data = DeployData.create(toml_manifest)
 except DeployDataError as e:
     error_and_exit("DEPLOY_DATA_ERROR", e.__str__())
+except SSHConfigError as e:
+    error_and_exit("SSH_CONFIG_ERROR", e.__str__())
 if not deploy_data:
     exit(0)
 
