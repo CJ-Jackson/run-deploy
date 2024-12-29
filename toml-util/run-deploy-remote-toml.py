@@ -191,15 +191,14 @@ try:
     if top_ssh.is_metal:
         top_remote_cli = "run-deploy-remote-metal-cli"
 
-    # Get the last deploy
+    extra = []
     if top_ssh.incus_name:
-        last_deploy = subprocess.run([
-            remote_cli, top_ssh_address, "last-deploy", "--incus", top_ssh.incus_name, "--image", deploy_data.image_name,
-        ], check=True, capture_output=True).stdout.decode('utf-8').strip()
-    else:
-        last_deploy = subprocess.run([
-            top_remote_cli, top_ssh_address, "last-deploy", "--image", deploy_data.image_name,
-        ], check=True, capture_output=True).stdout.decode('utf-8').strip()
+        extra += ["--incus", top_ssh.incus_name]
+
+    # Get the last deploy
+    last_deploy = subprocess.run([
+        top_remote_cli, top_ssh_address, "last-deploy", "--image", deploy_data.image_name,
+    ]+extra, check=True, capture_output=True).stdout.decode('utf-8').strip()
 except subprocess.CalledProcessError as e:
     print(e.output.decode('utf-8'), file=sys.stderr)
     exit(e.returncode)
@@ -285,16 +284,12 @@ except subprocess.CalledProcessError as e:
         current_remote_cli = remote_cli
         if ssh_config.is_metal:
             current_remote_cli = "run-deploy-remote-metal-cli"
+        extra = []
         if ssh_config.incus_name:
-            subprocess.run([
-                remote_cli, ssh_address, "revert", "--incus", ssh_config.incus_name, "--image", deploy_data.image_name,
-                "--revision",
-                last_deploy
-            ], check=True)
-        else:
-            subprocess.run([
-                current_remote_cli, ssh_address, "revert", "--image", deploy_data.image_name, "--revision", last_deploy
-            ], check=True)
+            extra += ["--incus", ssh_config.incus_name]
+        subprocess.run([
+            current_remote_cli, ssh_address, "revert", "--image", deploy_data.image_name, "--revision", last_deploy
+        ]+extra, check=True)
 
 # Finally remove the image from tmp.
 shutil.rmtree(image_dir)
