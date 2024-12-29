@@ -154,6 +154,35 @@ if not deploy_data:
 remote_cli = "run-deploy-remote-cli"
 remote_deploy = "/opt/run-deploy/bin/run-deploy"
 
+try:
+    print("-- Checking Permission --", file=sys.stderr)
+    fail = False
+    for ssh_address, ssh_config in deploy_data.ssh_configs.items():
+        print(f"-- Checking {ssh_address} --", file=sys.stderr)
+        current_remote_cli = remote_cli
+        if ssh_config.is_metal:
+            current_remote_cli = "run-deploy-remote-metal-cli"
+        extra = []
+        if ssh_config.incus_name:
+            extra += ["--incus", ssh_config.incus_name]
+        permission_data = subprocess.run([
+            current_remote_cli, ssh_address, "permission-json", "--image", deploy_data.image_name
+        ]+extra, check=True, capture_output=True).stdout.decode('utf-8')
+        permission_data = json.loads(permission_data)
+        has_full_permission = permission_data.get("full", False)
+        if has_full_permission:
+            print("Result: OK", file=sys.stderr)
+        else:
+            fail=True
+            print("Result: FAIL", file=sys.stderr)
+    if fail:
+        exit(101)
+except subprocess.CalledProcessError as e:
+    print(e.output.decode('utf-8'), file=sys.stderr)
+    exit(e.returncode)
+except json.JSONDecodeError:
+    error_and_exit("JSON_PERMISSION", "Unable to decode permission")
+
 last_deploy = ""
 try:
     top_ssh_address = str(list(deploy_data.ssh_configs.keys())[0])
@@ -174,6 +203,9 @@ try:
 except subprocess.CalledProcessError as e:
     print(e.output.decode('utf-8'), file=sys.stderr)
     exit(e.returncode)
+
+if last_deploy:
+    print(f"-- Last deploy is: {last_deploy}", file=sys.stderr)
 
 # Pre Script
 try:
