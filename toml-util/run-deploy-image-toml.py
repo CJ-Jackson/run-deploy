@@ -149,6 +149,8 @@ except BuildDataError as e:
 if not build_data:
     exit(0)
 
+toml_manifest = None
+
 tmp_dir = f"{build_data.tmp_locaiton}/run-deploy-image-{build_data.name}-{time.time()}"
 os.mkdir(tmp_dir, 0o700)
 os.chdir(tmp_dir)

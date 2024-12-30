@@ -111,6 +111,8 @@ except DeployDataError as e:
 if not deploy_data:
     exit(0)
 
+toml_manifest = None
+
 local_cli = "run-deploy-cli"
 local_deploy = "/opt/run-deploy/bin/run-deploy"
 

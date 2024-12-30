@@ -159,6 +159,8 @@ except SSHConfigError as e:
 if not deploy_data:
     exit(0)
 
+toml_manifest = None
+
 remote_cli = "run-deploy-remote-cli"
 remote_deploy = "/opt/run-deploy/bin/run-deploy"
 
