@@ -154,6 +154,8 @@ Run `local-incus/install.py` as root
 
 Run `toml-util/install.py` as root
 
+Note: must install remote client
+
 ### For servers
 
 Run `create_server_installer.py`, first it will open a toml file in the default text editor, edit it, add the ssh
@@ -177,11 +179,14 @@ umount mnt
 Now all you need to do is create the private and public key pair, on the client machine run
 
 ```shell
-minisign -G -W
+mkdir ~/.config/run-deploy
+cd ~/.config/run-deploy
+
+minisign -G -p "$(whoami)@$(hostname).pub" -s 'minisign.key' -W
 ```
 
-And upload the public key to `/opt/run-deploy/minisign/username@hostname.pub`, that the client username and hostname,
-and you should be ready.
+And upload the public key (`.pub`) to `/opt/run-deploy/minisign/`,
+and you should be ready to go.
 
 If you want you can test it.
 
@@ -336,3 +341,5 @@ ln -sf example-2024-12-12.squashfs example.squashfs
 ```
 
 Strict mode will write it own script and is the default, Quirk mode will let you write you own script that is stored in the image, not recommended as it will run the script in root.
+
+To enable quirk mode delete `strict` file from `/opt/run-deploy/options` on server.
