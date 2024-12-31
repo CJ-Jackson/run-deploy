@@ -18,6 +18,9 @@ deploy_user = "deploy"
 # Place public keys here
 ssh_authorized_keys = []
 
+# Use uv
+uv = false
+
 # The format is TOML
 """.strip()
 
@@ -58,10 +61,24 @@ pathlib.Path("opt/run-deploy/options/strict").write_text("strict", 'utf-8')
 
 doas_permission = []
 
+uv_stub = None
+if toml_config.get("uv", False):
+    uv_stub = pathlib.Path(f"{current_path}/uv_stub.py").read_text("utf-8").strip() + "\n"
+
+
+def copy(src: str, dest: str):
+    if uv_stub:
+        src_str = pathlib.Path(src).read_text("utf-8").removeprefix("#!/usr/bin/env python3").strip()
+        dest_str = f'{uv_stub}{src_str}' + "\n"
+        pathlib.Path(dest).write_text(dest_str, 'utf-8')
+    else:
+        shutil.copy(src, dest)
+
+
 for run_deploy_path in pathlib.Path(f"{current_path}/{toml_config['edition']}").glob('*.py'):
     run_deploy_path = str(run_deploy_path)
     run_deploy_target_path = f"opt/run-deploy/bin/{os.path.basename(run_deploy_path).removesuffix('.py')}"
-    shutil.copy(run_deploy_path, run_deploy_target_path)
+    copy(run_deploy_path, run_deploy_target_path)
     os.chmod(run_deploy_target_path, 0o700)
     if run_deploy_target_path.endswith("-cli"):
         doas_permission.append(
@@ -74,6 +91,11 @@ for run_deploy_path in pathlib.Path(f"{current_path}/{toml_config['edition']}").
 
 if os.path.exists(f"{current_path}/{toml_config['edition']}/_opt"):
     shutil.copytree(f"{current_path}/{toml_config['edition']}/_opt", "opt/run-deploy", dirs_exist_ok=True)
+
+if uv_stub:
+    for python_script in pathlib.Path("opt/run-deploy/script").glob("*.py"):
+        python_script = str(python_script)
+        copy(python_script, python_script)
 
 systemd_symlinks = []
 systemd_cmd = []
