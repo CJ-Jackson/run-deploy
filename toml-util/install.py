@@ -26,7 +26,9 @@ def copy(src: str, dest: str):
     if uv_stub:
         src_str = pathlib.Path(src).read_text("utf-8").removeprefix("#!/usr/bin/env python3").strip()
         dest_str = f'{uv_stub}{src_str}' + "\n"
-        pathlib.Path(dest).write_text(dest_str, 'utf-8')
+        dest_path = pathlib.Path(dest)
+        dest_path.write_text(dest_str, 'utf-8')
+        dest_path.chmod(0o755)
     else:
         shutil.copy(src, dest)
 
