@@ -27,7 +27,7 @@ subprocess.run([
 ] + extra + [ "-m", token_file_name ], check=True, capture_output=True)
 
 subprocess.run([
-    "scp", token_file_name, f"{token_file_name}.minisig", f"{ssh_address}:/tmp/run-deploy"
+    "scp", f"{token_file_name}.minisig", token_file_name, f"{ssh_address}:/tmp/run-deploy"
 ], check=True, capture_output=True)
 os.remove(token_file_name)
 os.remove(f"{token_file_name}.minisig")
