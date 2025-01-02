@@ -113,7 +113,7 @@ if not deploy_data:
 
 toml_manifest = None
 
-local_cli = "run-deploy-cli"
+local_cli = "/opt/run-deploy/bin/run-deploy-cli"
 local_deploy = "/opt/run-deploy/bin/run-deploy"
 
 last_deploy = ""
