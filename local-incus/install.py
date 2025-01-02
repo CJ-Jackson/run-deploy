@@ -11,7 +11,7 @@ if getpass.getuser() != "root":
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 os.makedirs("/opt/run-deploy/bin", exist_ok=True)
-os.makedirs("/opt/run-deploy/options")
+os.makedirs("/opt/run-deploy/options", exist_ok=True)
 
 # Enable strict mode by default
 pathlib.Path("/opt/run-deploy/options/strict").write_text("strict", 'utf-8')
