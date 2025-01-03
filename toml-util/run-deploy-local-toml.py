@@ -78,19 +78,17 @@ class DeployData:
 
     @classmethod
     def create(cls, data: dict) -> Self:
-        if "incus" not in data:
-            raise DeployDataError("Must have 'incus'")
+        match data:
+            case {"incus": str(), "image": str(), "create_image_script": str()}:
+                pass
+            case _:
+                raise DeployDataError("Must have 'incus'(str), 'image'(str) and 'create_image_script'(str)")
+
         incus_name = data["incus"]
         file_name_validation(incus_name, "incus", True)
 
-        if "image" not in data:
-            raise DeployDataError("Must have 'image'")
         image_name = data["image"]
         file_name_validation(image_name, "image", True)
-
-        if "create_image_script" not in data:
-            raise DeployDataError("Must have 'create_image_script'")
-        create_image_script = os.path.abspath(data["create_image_script"])
 
         pre_script = data.get("pre_script", [])
         for key in range(len(pre_script)):
@@ -99,7 +97,7 @@ class DeployData:
         return cls(
             incus_name=incus_name,
             image_name=image_name,
-            create_image_script=create_image_script,
+            create_image_script=os.path.abspath(data["create_image_script"]),
             pre_script=tuple(pre_script)
         )
 

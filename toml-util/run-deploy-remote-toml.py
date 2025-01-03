@@ -113,17 +113,15 @@ class DeployData:
 
     @classmethod
     def create(cls, data: dict) -> Self:
-        if "image" not in data:
-            raise DeployDataError("Must have 'image'")
+        match data:
+            case {"image": str(), "create_image_script": str(), "ssh": dict()}:
+                pass
+            case _:
+                raise DeployDataError("Must have 'image'(str), 'create_image_script'(str) and 'ssh'(dict)")
+
         image_name = data["image"]
         file_name_validation(image_name, "image", True)
 
-        if "create_image_script" not in data:
-            raise DeployDataError("Must have 'create_image_script'")
-        create_image_script = os.path.abspath(data["create_image_script"])
-
-        if "ssh" not in data:
-            raise SSHConfigError("Must have at least one SSH config")
         ssh_configs = data["ssh"]
         for key, value in ssh_configs.items():
             ssh_configs[key] = SSHConfig.create(value)
@@ -143,7 +141,7 @@ class DeployData:
 
         return cls(
             image_name=image_name,
-            create_image_script=create_image_script,
+            create_image_script=os.path.abspath(data["create_image_script"]),
             ssh_configs=ssh_configs,
             pre_script=tuple(pre_script)
         )

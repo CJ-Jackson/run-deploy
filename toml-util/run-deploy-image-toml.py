@@ -99,8 +99,11 @@ class BuildData:
 
     @classmethod
     def create(cls, data: dict) -> Self:
-        if "manifest" not in data:
-            raise ManifestDataError("Must have at least one manifest")
+        match data:
+            case {"manifest": dict(), "name": str(), "build_script": str()}:
+                pass
+            case _:
+                raise ManifestDataError("Must have 'name'(str) 'manifest'(dict) and 'build_script'(str)")
         manifest = data["manifest"]
         for key, value in manifest.items():
             manifest[key] = ManifestData.create(value)
@@ -110,18 +113,12 @@ class BuildData:
                 raise ManifestDataError("Manifest is not setup for `--hostname`")
             manifest = {flag_hostname: manifest['__']}
 
-        if "name" not in data:
-            raise BuildDataError("Must have 'name'")
         name = data["name"]
         file_name_validation(name, "name", True)
 
-        if "build_script" not in data:
-            raise BuildDataError("Must have 'build_script'")
-        build_script = os.path.abspath(data["build_script"])
-
         return cls(
             name=name,
-            build_script=build_script,
+            build_script=os.path.abspath(data["build_script"]),
             manifest=manifest,
             tmp_locaiton=data.get("tmp_location", "/tmp")
         )
