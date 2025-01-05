@@ -7,6 +7,7 @@ import socket
 import string
 import subprocess
 import sys
+import json
 
 ssh_address = ""
 try:
@@ -14,6 +15,25 @@ try:
 except IndexError:
     print("Must have ssh address", file=sys.stderr)
     exit(1)
+
+def error_and_exit(error_name: str, message: str):
+    json.dump({"error_name": error_name, "message": message}, sys.stderr, indent="\t")
+    exit(100)
+
+
+def key_validation(value: str):
+    valid = not set(value).difference(string.ascii_letters + string.digits + '-_@')
+    if not valid:
+        error_and_exit(
+            "KEY_REF_VALIDATION",
+            f"'key_ref.txt' must be `ascii letters + digits + -_@`"
+        )
+
+
+key_ref = f"{getpass.getuser()}@{socket.gethostname()}"
+if os.path.exists(os.path.expanduser("~/.config/run-deploy/key_ref.txt")):
+    key_ref = pathlib.Path(os.path.expanduser("~/.config/run-deploy/key_ref.txt")).read_text('utf-8').strip()
+    key_validation(key_ref)
 
 token_ref = ''.join(random.choice(string.ascii_letters+string.digits) for x in range(64))
 token_file_name = f"/tmp/run-deploy-token-{token_ref}"
@@ -33,7 +53,7 @@ os.remove(token_file_name)
 os.remove(f"{token_file_name}.minisig")
 
 env_token = f"RUN_DEPLOY_TOKEN={token_ref}"
-env_key = f"RUN_DEPLOY_KEY='{getpass.getuser()}@{socket.gethostname()}'"
+env_key = f"RUN_DEPLOY_KEY='{key_ref}'"
 
 try:
     subprocess.run([

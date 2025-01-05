@@ -3,6 +3,7 @@ import argparse
 import getpass
 import json
 import os
+import pathlib
 import shutil
 import socket
 import string
@@ -28,6 +29,19 @@ def file_name_validation(value: str, name: str, flag: bool = False):
             "FILE_NAME_VALIDATION",
             f"{name} must be `ascii letters + digits + {extra}`"
         )
+
+def key_validation(value: str):
+    valid = not set(value).difference(string.ascii_letters + string.digits + '-_@')
+    if not valid:
+        error_and_exit(
+            "KEY_REF_VALIDATION",
+            f"'key_ref.txt' must be `ascii letters + digits + -_@`"
+        )
+
+key_ref = f"{getpass.getuser()}@{socket.gethostname()}"
+if os.path.exists(os.path.expanduser("~/.config/run-deploy/key_ref.txt")):
+    key_ref = pathlib.Path(os.path.expanduser("~/.config/run-deploy/key_ref.txt")).read_text('utf-8').strip()
+    key_validation(key_ref)
 
 
 parser = argparse.ArgumentParser(description="Process TOML based deploy")
@@ -368,7 +382,7 @@ try:
         process_data = subprocess.run([
             "ssh", ssh_address, "--", "doas", current_remote_deploy,
             f"{ssh_config.upload}/{base_image_name}",
-            f"{getpass.getuser()}@{socket.gethostname()}"
+            f"{key_ref}"
         ], check=True, capture_output=True)
         output = process_data.stdout.decode('utf-8').strip()
         if output:
