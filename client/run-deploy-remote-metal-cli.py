@@ -46,11 +46,21 @@ subprocess.run([
     "minisign", "-S",
 ] + extra + [ "-m", token_file_name ], check=True, capture_output=True)
 
-subprocess.run([
-    "scp", f"{token_file_name}.minisig", token_file_name, f"{ssh_address}:/tmp/run-deploy"
-], check=True, capture_output=True)
-os.remove(token_file_name)
-os.remove(f"{token_file_name}.minisig")
+def clear_keys():
+    os.remove(token_file_name)
+    os.remove(f"{token_file_name}.minisig")
+
+try:
+    subprocess.run([
+        "scp", f"{token_file_name}.minisig", token_file_name, f"{ssh_address}:/tmp/run-deploy"
+    ], check=True, capture_output=True)
+    clear_keys()
+except subprocess.CalledProcessError:
+    clear_keys()
+    error_and_exit(
+        "SSH_KEY_VALIDATION",
+        f"Did you forget to put the SSH private key into the agent? =D"
+    )
 
 env_token = f"RUN_DEPLOY_TOKEN={token_ref}"
 env_key = f"RUN_DEPLOY_KEY='{key_ref}'"
