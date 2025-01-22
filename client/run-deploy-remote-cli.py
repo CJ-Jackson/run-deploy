@@ -64,12 +64,19 @@ token_ref = ''.join(random.choice(string.ascii_letters+string.digits) for x in r
 token_file_name = f"/tmp/run-deploy-token-{token_ref}"
 pathlib.Path(token_file_name).write_bytes(os.urandom(2048))
 
-extra = []
-if os.path.exists(os.path.expanduser("~/.config/run-deploy/minisign.key")):
-    extra += ['-s', os.path.expanduser("~/.config/run-deploy/minisign.key")]
-subprocess.run([
-    "minisign", "-S",
-] + extra + [ "-m", token_file_name ], check=True, capture_output=True, input=passwd.passwdInput())
+try:
+    extra = []
+    if os.path.exists(os.path.expanduser("~/.config/run-deploy/minisign.key")):
+        extra += ['-s', os.path.expanduser("~/.config/run-deploy/minisign.key")]
+    subprocess.run([
+        "minisign", "-S",
+    ] + extra + [ "-m", token_file_name ], check=True, capture_output=True, input=passwd.passwdInput())
+except subprocess.CalledProcessError:
+    error_and_exit(
+        "MINISIGN",
+        f"Did you forget to setup minisign? Does it require a password?"
+    )
+
 
 def clear_keys():
     os.remove(token_file_name)

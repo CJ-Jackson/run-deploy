@@ -202,6 +202,9 @@ remote_cli = "run-deploy-remote-cli"
 remote_deploy = "/opt/run-deploy/bin/run-deploy"
 
 
+process_error_message = "Did you check that you got the SSH Private Key in the agent? Does `minisign.key` require a password? =D"
+
+
 # List revision
 if flag_list_revision:
     try:
@@ -218,7 +221,7 @@ if flag_list_revision:
                 current_remote_cli, ssh_address, "list-revision", "--image", deploy_data.image_name
             ]+extra, check=True, input=passwd.passwdInput(), env=passwd.environment())
     except subprocess.CalledProcessError as e:
-        print("Did you check that you got the SSH Private Key in the agent? =D", file=sys.stderr)
+        print(process_error_message, file=sys.stderr)
         exit(e.returncode)
 
     exit(0)
@@ -240,7 +243,7 @@ if flag_last_deploy:
                 current_remote_cli, ssh_address, "last-deploy", "--image", deploy_data.image_name
             ]+extra, check=True, input=passwd.passwdInput(), env=passwd.environment())
     except subprocess.CalledProcessError as e:
-        print("Did you check that you got the SSH Private Key in the agent? =D", file=sys.stderr)
+        print(process_error_message, file=sys.stderr)
         exit(e.returncode)
 
     exit(0)
@@ -262,7 +265,7 @@ if flag_last_deploy_blame:
                 current_remote_cli, ssh_address, "last-deploy-blame", "--image", deploy_data.image_name
             ]+extra, check=True, input=passwd.passwdInput(), env=passwd.environment())
     except subprocess.CalledProcessError as e:
-        print("Did you check that you got the SSH Private Key in the agent? =D", file=sys.stderr)
+        print(process_error_message, file=sys.stderr)
         exit(e.returncode)
 
     exit(0)
@@ -285,7 +288,7 @@ if flag_revert:
                 current_remote_cli, ssh_address, "revert", "--image", deploy_data.image_name, "--revision", flag_revert
             ]+extra, check=True, input=passwd.passwdInput(), env=passwd.environment())
     except subprocess.CalledProcessError as e:
-        print("Did you check that you got the SSH Private Key in the agent? =D", file=sys.stderr)
+        print(process_error_message, file=sys.stderr)
         exit(e.returncode)
 
     exit(0)
@@ -316,7 +319,7 @@ try:
         exit(101)
 except subprocess.CalledProcessError as e:
     print(e.output.decode('utf-8'), file=sys.stderr)
-    print("Did you check that you got the SSH Private Key in the agent? =D", file=sys.stderr)
+    print(process_error_message, file=sys.stderr)
     exit(e.returncode)
 except json.JSONDecodeError:
     error_and_exit("JSON_PERMISSION", "Unable to decode permission")
@@ -379,7 +382,7 @@ try:
 except subprocess.CalledProcessError:
     error_and_exit(
         "IMAGE_SIGNING",
-        "Unable sign image"
+        "Unable sign image, does it need a password?"
     )
 
 # Upload image
