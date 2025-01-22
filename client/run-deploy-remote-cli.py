@@ -74,7 +74,7 @@ try:
 except subprocess.CalledProcessError:
     error_and_exit(
         "MINISIGN",
-        f"Did you forget to setup minisign? Does it require a password?"
+        f"Did you forget to setup minisign? Does it require a password? Did you use the correct password?"
     )
 
 
