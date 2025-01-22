@@ -81,6 +81,31 @@ def image_args() -> list:
     return return_args
 
 
+@dataclass(frozen=True)
+class MinisignPasswd:
+    passwd: str|None = None
+
+    @classmethod
+    def create(cls) -> Self:
+        if os.path.exists(os.path.expanduser("~/.config/run-deploy/options/minisign_passwd")):
+            return cls(passwd=getpass.getpass("Minisign Password:").strip())
+
+        return cls()
+
+    def passwdInput(self) -> bytes|None:
+        if not self.passwd:
+            return None
+        return self.passwd.encode('utf-8')
+
+    def environment(self) -> dict:
+        d = {}
+        if self.passwd:
+            d["RUN_DEPLOY_MINISIGN_PASSWD_PIPE"] = "1"
+        return d | os.environ
+
+
+passwd = MinisignPasswd.create()
+
 toml_manifest = {}
 try:
     with open(arg_toml, "rb") as f:
@@ -191,7 +216,7 @@ if flag_list_revision:
                 extra += ["--incus", ssh_config.incus_name]
             subprocess.run([
                 current_remote_cli, ssh_address, "list-revision", "--image", deploy_data.image_name
-            ]+extra, check=True)
+            ]+extra, check=True, input=passwd.passwdInput(), env=passwd.environment())
     except subprocess.CalledProcessError as e:
         print("Did you check that you got the SSH Private Key in the agent? =D", file=sys.stderr)
         exit(e.returncode)
@@ -213,7 +238,7 @@ if flag_last_deploy:
                 extra += ["--incus", ssh_config.incus_name]
             subprocess.run([
                 current_remote_cli, ssh_address, "last-deploy", "--image", deploy_data.image_name
-            ]+extra, check=True)
+            ]+extra, check=True, input=passwd.passwdInput(), env=passwd.environment())
     except subprocess.CalledProcessError as e:
         print("Did you check that you got the SSH Private Key in the agent? =D", file=sys.stderr)
         exit(e.returncode)
@@ -235,7 +260,7 @@ if flag_last_deploy_blame:
                 extra += ["--incus", ssh_config.incus_name]
             subprocess.run([
                 current_remote_cli, ssh_address, "last-deploy-blame", "--image", deploy_data.image_name
-            ]+extra, check=True)
+            ]+extra, check=True, input=passwd.passwdInput(), env=passwd.environment())
     except subprocess.CalledProcessError as e:
         print("Did you check that you got the SSH Private Key in the agent? =D", file=sys.stderr)
         exit(e.returncode)
@@ -258,7 +283,7 @@ if flag_revert:
                 extra += ["--incus", ssh_config.incus_name]
             subprocess.run([
                 current_remote_cli, ssh_address, "revert", "--image", deploy_data.image_name, "--revision", flag_revert
-            ]+extra, check=True)
+            ]+extra, check=True, input=passwd.passwdInput(), env=passwd.environment())
     except subprocess.CalledProcessError as e:
         print("Did you check that you got the SSH Private Key in the agent? =D", file=sys.stderr)
         exit(e.returncode)
@@ -279,7 +304,7 @@ try:
             extra += ["--incus", ssh_config.incus_name]
         permission_data = subprocess.run([
             current_remote_cli, ssh_address, "permission-json", "--image", deploy_data.image_name
-        ]+extra, check=True, capture_output=True).stdout.decode('utf-8')
+        ]+extra, check=True, capture_output=True, input=passwd.passwdInput(), env=passwd.environment()).stdout.decode('utf-8')
         permission_data = json.loads(permission_data)
         has_full_permission = permission_data.get("full", False)
         if has_full_permission:
@@ -311,7 +336,7 @@ try:
     # Get the last deploy
     last_deploy = subprocess.run([
         top_remote_cli, top_ssh_address, "last-deploy", "--image", deploy_data.image_name,
-    ]+extra, check=True, capture_output=True).stdout.decode('utf-8').strip()
+    ]+extra, check=True, capture_output=True, input=passwd.passwdInput(), env=passwd.environment()).stdout.decode('utf-8').strip()
 except subprocess.CalledProcessError as e:
     print(e.output.decode('utf-8'), file=sys.stderr)
     exit(e.returncode)
@@ -350,7 +375,7 @@ try:
         extra += ['-s', os.path.expanduser("~/.config/run-deploy/minisign.key")]
     subprocess.run([
         "minisign", "-S",
-    ] + extra + [ "-m", image_name ], check=True, capture_output=True)
+    ] + extra + [ "-m", image_name ], check=True, capture_output=True, input=passwd.passwdInput())
 except subprocess.CalledProcessError:
     error_and_exit(
         "IMAGE_SIGNING",
@@ -405,7 +430,7 @@ except subprocess.CalledProcessError as e:
             extra += ["--incus", ssh_config.incus_name]
         subprocess.run([
             current_remote_cli, ssh_address, "revert", "--image", deploy_data.image_name, "--revision", last_deploy
-        ]+extra, check=True)
+        ]+extra, check=True, input=passwd.passwdInput(), env=passwd.environment())
 
 # Finally remove the image from tmp.
 shutil.rmtree(image_dir)

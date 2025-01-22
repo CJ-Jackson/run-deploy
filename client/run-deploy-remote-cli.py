@@ -8,6 +8,8 @@ import string
 import subprocess
 import sys
 import json
+from dataclasses import dataclass
+from typing import Self
 
 ssh_address = ""
 try:
@@ -30,6 +32,29 @@ def key_validation(value: str):
             f"'key_ref.txt' must be `ascii letters + digits + -_@`"
         )
 
+
+@dataclass(frozen=True)
+class MinisignPasswd:
+    passwd: str|None = None
+
+    @classmethod
+    def create(cls) -> Self:
+        if os.environ.get("RUN_DEPLOY_MINISIGN_PASSWD_PIPE", None):
+            return cls(passwd=sys.stdin.read().strip())
+
+        if os.path.exists(os.path.expanduser("~/.config/run-deploy/options/minisign_passwd")):
+            return cls(passwd=getpass.getpass("Minisign Password:").strip())
+
+        return cls()
+
+    def passwdInput(self) -> bytes|None:
+        if not self.passwd:
+            return None
+        return self.passwd.encode('utf-8')
+
+
+passwd = MinisignPasswd.create()
+
 key_ref = f"{getpass.getuser()}@{socket.gethostname()}"
 if os.path.exists(os.path.expanduser("~/.config/run-deploy/key_ref.txt")):
     key_ref = pathlib.Path(os.path.expanduser("~/.config/run-deploy/key_ref.txt")).read_text('utf-8').strip()
@@ -44,7 +69,7 @@ if os.path.exists(os.path.expanduser("~/.config/run-deploy/minisign.key")):
     extra += ['-s', os.path.expanduser("~/.config/run-deploy/minisign.key")]
 subprocess.run([
     "minisign", "-S",
-] + extra + [ "-m", token_file_name ], check=True, capture_output=True)
+] + extra + [ "-m", token_file_name ], check=True, capture_output=True, input=passwd.passwdInput())
 
 def clear_keys():
     os.remove(token_file_name)
