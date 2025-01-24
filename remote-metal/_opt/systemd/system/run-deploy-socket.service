@@ -1,0 +1,7 @@
+[Unit]
+Description=Run-deploy socket service
+
+[Service]
+Type=oneshot
+User=root
+ExecStart=/home/cjjackson/Project/run-deploy/remote-metal/run-deploy-socket.py recv

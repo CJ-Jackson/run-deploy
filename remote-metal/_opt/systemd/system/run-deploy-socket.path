@@ -1,0 +1,5 @@
+[Unit]
+Description=Run-deploy socket service path activator
+
+[Path]
+PathModified=/tmp/run-deploy.path
