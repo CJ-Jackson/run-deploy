@@ -38,6 +38,7 @@ def send_cli():
 
     handle_fifo(fifo_path)
 
+
 commands["cli"] = send_cli
 
 
