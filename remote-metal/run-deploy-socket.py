@@ -11,13 +11,14 @@ commands: dict = {}
 
 
 def handle_fifo(fifo_path: str):
+    while not os.path.exists(fifo_path):
+        time.sleep(1)
     with open(fifo_path, "r") as fifo:
         data = json.load(fifo)
     if data["code"] > 0:
         print(data["stderr"], file=sys.stderr)
     else:
         print(data["stdout"])
-    os.remove(fifo_path)
     exit(data["code"])
 
 
@@ -27,7 +28,6 @@ def send_cli():
         os.mkfifo(fifo_path, 0o666)
 
     fifo_recv_path = f"/tmp/run-deploy-cli-fifo-{time.time()}"
-    os.mkfifo(fifo_recv_path, 0o666)
 
     data = {
         "cmd": "cli",
@@ -57,7 +57,6 @@ def deploy():
         os.mkfifo(fifo_path, 0o666)
 
     fifo_recv_path = f"/tmp/run-deploy-fifo-{time.time()}"
-    os.mkfifo(fifo_recv_path, 0o666)
 
     data = {
         "cmd": "deploy",
@@ -87,19 +86,20 @@ def handle_subprocess(fifo_path: str, args: list, env=None):
     with open(fifo_path, "w") as fifo:
         json.dump({
             "code": process.returncode,
-            "stdout": process.stdout.decode('utf-8'),
-            "stderr": process.stderr.decode('utf-8')
+            "stdout": process.stdout.decode('utf-8').strip(),
+            "stderr": process.stderr.decode('utf-8').strip()
         }, fifo)
         fifo.flush()
 
 
 def recv():
     if not os.path.exists("/tmp/run-deploy.fifo"):
-        time.sleep(2)
+        time.sleep(5)
         exit(0)
     with open("/tmp/run-deploy.fifo", "r") as fifo:
         data = json.load(fifo)
     fifo_path = data["fifo"]
+    os.mkfifo(fifo_path, 0o666)
     match data:
         case {"cmd": "cli"}:
             handle_subprocess(fifo_path, ["/opt/run-deploy/bin/run-deploy-cli"] + data['args'], {
@@ -108,7 +108,8 @@ def recv():
             })
         case {"cmd": "deploy"}:
             handle_subprocess(fifo_path, ["/opt/run-deploy/bin/run-deploy", data["target"], data["key"]])
-    time.sleep(2)
+    time.sleep(5)
+    os.remove(fifo_path)
 
 
 commands["recv"] = recv
