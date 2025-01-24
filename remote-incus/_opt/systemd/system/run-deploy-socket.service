@@ -1,0 +1,7 @@
+[Unit]
+Description=Run-deploy socket service
+
+[Service]
+Type=oneshot
+User=root
+ExecStart=/opt/run-deploy/bin/run-deploy-socket recv

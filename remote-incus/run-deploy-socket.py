@@ -22,7 +22,7 @@ def handle_fifo(fifo_path: str):
     exit(data["code"])
 
 
-def send_cli():
+def send_cli(cmd: str = "cli"):
     fifo_path = "/tmp/run-deploy.fifo"
     if not os.path.exists(fifo_path):
         os.mkfifo(fifo_path, 0o666)
@@ -30,7 +30,7 @@ def send_cli():
     fifo_recv_path = f"/tmp/run-deploy-cli-fifo-{time.time()}"
 
     data = {
-        "cmd": "cli",
+        "cmd": cmd,
         "token": os.environ['RUN_DEPLOY_TOKEN'].strip(),
         "key": os.environ['RUN_DEPLOY_KEY'].strip(),
         "args": sys.argv[2:],
@@ -48,10 +48,15 @@ def send_cli():
     handle_fifo(fifo_recv_path)
 
 
+def send_cli_metal():
+    send_cli("cli-metal")
+
+
 commands["cli"] = send_cli
+commands["cli-metal"] = send_cli_metal
 
 
-def deploy():
+def deploy(cmd: str = "deploy"):
     fifo_path = "/tmp/run-deploy.fifo"
     if not os.path.exists(fifo_path):
         os.mkfifo(fifo_path, 0o666)
@@ -59,7 +64,7 @@ def deploy():
     fifo_recv_path = f"/tmp/run-deploy-fifo-{time.time()}"
 
     data = {
-        "cmd": "deploy",
+        "cmd": cmd,
         "target": sys.argv[2].strip(),
         "key": sys.argv[3].strip(),
         "fifo": fifo_recv_path
@@ -76,7 +81,12 @@ def deploy():
     handle_fifo(fifo_recv_path)
 
 
+def deploy_metal():
+    deploy("deploy-metal")
+
+
 commands["deploy"] = deploy
+commands["deploy-metal"] = deploy_metal
 
 
 def handle_subprocess(fifo_path: str, args: list, env=None):
@@ -106,8 +116,15 @@ def recv():
                 "RUN_DEPLOY_TOKEN": data['token'],
                 "RUN_DEPLOY_KEY": data['key']
             })
+        case {"cmd": "cli-metal"}:
+            handle_subprocess(fifo_path, ["/opt/run-deploy/bin/run-deploy-metal-cli"] + data['args'], {
+                "RUN_DEPLOY_TOKEN": data['token'],
+                "RUN_DEPLOY_KEY": data['key']
+            })
         case {"cmd": "deploy"}:
             handle_subprocess(fifo_path, ["/opt/run-deploy/bin/run-deploy", data["target"], data["key"]])
+        case {"cmd": "deploy-metal"}:
+            handle_subprocess(fifo_path, ["/opt/run-deploy/bin/run-deploy-metal", data["target"], data["key"]])
     time.sleep(1)
     os.remove(fifo_path)
 
