@@ -43,7 +43,7 @@ class MinisignPasswd:
             return cls(passwd=sys.stdin.read().strip())
 
         if os.path.exists(os.path.expanduser("~/.config/run-deploy/options/minisign_passwd")):
-            return cls(passwd=getpass.getpass("Minisign Password:").strip())
+            return cls(passwd=getpass.getpass("Minisign Password: ").strip())
 
         return cls()
 
