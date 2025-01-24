@@ -5,8 +5,6 @@ the following sane open-source solution.
 
 * [SquashFS](https://en.wikipedia.org/wiki/SquashFS)
   * With the json manifest located inside the image `_deploy/push.json`
-* [OpenDoas](https://wiki.archlinux.org/title/Doas)
-  * To allow deploy user to run the script as root, it is a lot safer than SUDO and Polkit.
 * [Minisign](https://jedisct1.github.io/minisign/)
   * For image and user verification, the public key is cherry picked by the client `username@hostname`, as mentioned
     earlier it a stateless system.
@@ -22,7 +20,6 @@ File: `build.py`
 ```python
 #!/usr/bin/env python3
 import os
-import shutil
 import sys
 
 project_path = ""
@@ -126,8 +123,8 @@ run-deploy currently has three editions.
 ### remote-incus
 
 * python3.11
+* systemd
 * squashfuse
-* doas
 * dash
 * minisign
 * incus
@@ -135,8 +132,8 @@ run-deploy currently has three editions.
 ### remote-metal
 
 * python3.11
+* systemd
 * squashfuse
-* doas
 * dash
 * minisign
 

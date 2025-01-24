@@ -59,8 +59,6 @@ os.mkdir("opt/run-deploy/options")
 # Enable strict mode by default
 pathlib.Path("opt/run-deploy/options/strict").write_text("strict", 'utf-8')
 
-doas_permission = []
-
 uv_stub = None
 if toml_config.get("uv", False):
     uv_stub = pathlib.Path(f"{current_path}/uv_stub.py").read_text("utf-8").strip() + "\n"
@@ -80,14 +78,6 @@ for run_deploy_path in pathlib.Path(f"{current_path}/{toml_config['edition']}").
     run_deploy_target_path = f"opt/run-deploy/bin/{os.path.basename(run_deploy_path).removesuffix('.py')}"
     copy(run_deploy_path, run_deploy_target_path)
     os.chmod(run_deploy_target_path, 0o700)
-    if run_deploy_target_path.endswith("-cli"):
-        doas_permission.append(
-            f"permit nopass setenv {{ RUN_DEPLOY_TOKEN RUN_DEPLOY_KEY }} {toml_config['deploy_user']} as root cmd /{run_deploy_target_path}"
-        )
-    else:
-        doas_permission.append(
-            f"permit nopass {toml_config['deploy_user']} as root cmd /{run_deploy_target_path}"
-        )
 
 if os.path.exists(f"{current_path}/{toml_config['edition']}/_opt"):
     shutil.copytree(f"{current_path}/{toml_config['edition']}/_opt", "opt/run-deploy", dirs_exist_ok=True)
@@ -110,10 +100,6 @@ for systemd_name in systemd_paths:
         systemd_cmd.append(f"systemctl start '{systemd_name}'")
 systemd_symlinks = "\n".join(systemd_symlinks)
 systemd_cmd = "\n".join(systemd_cmd)
-
-doas = pathlib.Path("opt/run-deploy/etc/doas.conf")
-doas.write_text("\n".join(doas_permission), 'utf-8')
-doas.chmod(0o400)
 
 update = pathlib.Path("update.sh")
 update.write_text("""#!/bin/dash
@@ -140,11 +126,6 @@ chown root:{toml_config['deploy_user']} /home/{toml_config['deploy_user']}/.ssh
 chmod 750 /home/{toml_config['deploy_user']}/.ssh
 cp /opt/run-deploy/ssh/authorized_keys /home/{toml_config['deploy_user']}/.ssh
 chown root:{toml_config['deploy_user']} /home/{toml_config['deploy_user']}/.ssh/authorized_keys
-
-# Copy doas
-chmod 600 /etc/doas.conf 2> /dev/null
-cat /opt/run-deploy/etc/doas.conf >> /etc/doas.conf
-chmod 400 /etc/doas.conf
 
 exit 0
 """, 'utf-8')
