@@ -3,3 +3,6 @@ Description=Run-deploy socket service path activator
 
 [Path]
 PathModified=/tmp/run-deploy.path
+
+[Install]
+WantedBy=multi-user.target
