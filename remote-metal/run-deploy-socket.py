@@ -43,6 +43,8 @@ def send_cli():
         json.dump(data, fifo)
         fifo.flush()
 
+    os.remove(fifo_path)
+
     handle_fifo(fifo_recv_path)
 
 
