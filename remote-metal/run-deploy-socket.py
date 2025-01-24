@@ -15,9 +15,9 @@ def handle_fifo(fifo_path: str):
         time.sleep(1)
     with open(fifo_path, "r") as fifo:
         data = json.load(fifo)
-    if data["code"] > 0:
+    if (data["stderr"]):
         print(data["stderr"], file=sys.stderr)
-    else:
+    if (data["stdout"]):
         print(data["stdout"])
     exit(data["code"])
 

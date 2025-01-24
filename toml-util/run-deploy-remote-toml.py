@@ -199,7 +199,7 @@ if not deploy_data:
 toml_manifest = None
 
 remote_cli = "run-deploy-remote-cli"
-remote_deploy = "/opt/run-deploy/bin/run-deploy"
+remote_deploy = "deploy"
 
 
 process_error_message = "Did you check that you got the SSH Private Key in the agent? Does `minisign.key` require a password? =D"
@@ -405,10 +405,10 @@ try:
     for ssh_address, ssh_config in deploy_data.ssh_configs.items():
         current_remote_deploy = remote_deploy
         if ssh_config.is_metal:
-            current_remote_deploy = "/opt/run-deploy/bin/run-deploy-metal"
+            current_remote_deploy = "deploy-metal"
         print(f"-- Deploying: {ssh_address} --", file=sys.stderr)
         process_data = subprocess.run([
-            "ssh", ssh_address, "--", "doas", current_remote_deploy,
+            "ssh", ssh_address, "--", "/opt/run-deploy/bin/run-deploy-socket", current_remote_deploy,
             f"{ssh_config.upload}/{base_image_name}",
             f"{key_ref}"
         ], check=True, capture_output=True)
