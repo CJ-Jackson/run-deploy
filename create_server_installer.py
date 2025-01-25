@@ -78,6 +78,8 @@ for run_deploy_path in pathlib.Path(f"{current_path}/{toml_config['edition']}").
     run_deploy_target_path = f"opt/run-deploy/bin/{os.path.basename(run_deploy_path).removesuffix('.py')}"
     copy(run_deploy_path, run_deploy_target_path)
     os.chmod(run_deploy_target_path, 0o700)
+    if run_deploy_target_path.endswith("run-deploy-socket"):
+        os.chmod(run_deploy_target_path, 0o755)
 
 if os.path.exists(f"{current_path}/{toml_config['edition']}/_opt"):
     shutil.copytree(f"{current_path}/{toml_config['edition']}/_opt", "opt/run-deploy", dirs_exist_ok=True)
