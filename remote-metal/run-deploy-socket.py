@@ -10,7 +10,7 @@ arg_cmd = sys.argv[1]
 commands: dict = {}
 
 
-def handle_fifo(fifo_path: str):
+def handle_recv_fifo(fifo_path: str):
     while not os.path.exists(fifo_path):
         time.sleep(1)
     with open(fifo_path, "r") as fifo:
@@ -22,22 +22,31 @@ def handle_fifo(fifo_path: str):
     exit(data["code"])
 
 
-def send_cli():
-    fifo_path = "/tmp/run-deploy.fifo"
+def create_recv_fifo_add_to_queue() -> str:
+    fifo_path = f"/tmp/run-deploy-recv-fifo-{time.time()}"
     if not os.path.exists(fifo_path):
         os.mkfifo(fifo_path, 0o666)
 
-    fifo_recv_path = f"/tmp/run-deploy-cli-fifo-{time.time()}"
+    pathlib.Path(f"/tmp/run-deploy-{time.time()}-queue").write_text(fifo_path, "utf-8")
+
+    # Trigger systemd oneshot
+    pathlib.Path("/tmp/run-deploy.path").touch()
+
+    return fifo_path
+
+
+def send_cli(cmd: str = "cli"):
+    fifo_recv_path = f"/tmp/run-deploy-{cmd}-fifo-{time.time()}"
 
     data = {
-        "cmd": "cli",
+        "cmd": cmd,
         "token": os.environ['RUN_DEPLOY_TOKEN'].strip(),
         "key": os.environ['RUN_DEPLOY_KEY'].strip(),
         "args": sys.argv[2:],
         "fifo": fifo_recv_path
     }
 
-    pathlib.Path("/tmp/run-deploy.path").touch()
+    fifo_path = create_recv_fifo_add_to_queue()
 
     with open(fifo_path, "w") as fifo:
         json.dump(data, fifo)
@@ -45,27 +54,23 @@ def send_cli():
 
     os.remove(fifo_path)
 
-    handle_fifo(fifo_recv_path)
+    handle_recv_fifo(fifo_recv_path)
 
 
 commands["cli"] = send_cli
 
 
-def deploy():
-    fifo_path = "/tmp/run-deploy.fifo"
-    if not os.path.exists(fifo_path):
-        os.mkfifo(fifo_path, 0o666)
-
-    fifo_recv_path = f"/tmp/run-deploy-fifo-{time.time()}"
+def deploy(cmd: str = "deploy"):
+    fifo_recv_path = f"/tmp/run-deploy-{cmd}-fifo-{time.time()}"
 
     data = {
-        "cmd": "deploy",
+        "cmd": cmd,
         "target": sys.argv[2].strip(),
         "key": sys.argv[3].strip(),
         "fifo": fifo_recv_path
     }
 
-    pathlib.Path("/tmp/run-deploy.path").touch()
+    fifo_path = create_recv_fifo_add_to_queue()
 
     with open(fifo_path, "w") as fifo:
         json.dump(data, fifo)
@@ -73,7 +78,7 @@ def deploy():
 
     os.remove(fifo_path)
 
-    handle_fifo(fifo_recv_path)
+    handle_recv_fifo(fifo_recv_path)
 
 
 commands["deploy"] = deploy
@@ -92,11 +97,11 @@ def handle_subprocess(fifo_path: str, args: list, env=None):
         fifo.flush()
 
 
-def recv():
-    if not os.path.exists("/tmp/run-deploy.fifo"):
+def process_queue(recv_fifo_path: str):
+    if not os.path.exists(recv_fifo_path):
         time.sleep(1)
-        exit(0)
-    with open("/tmp/run-deploy.fifo", "r") as fifo:
+        return
+    with open(recv_fifo_path, "r") as fifo:
         data = json.load(fifo)
     fifo_path = data["fifo"]
     os.mkfifo(fifo_path, 0o666)
@@ -106,10 +111,24 @@ def recv():
                 "RUN_DEPLOY_TOKEN": data['token'],
                 "RUN_DEPLOY_KEY": data['key']
             })
+        case {"cmd": "cli-metal"}:
+            handle_subprocess(fifo_path, ["/opt/run-deploy/bin/run-deploy-metal-cli"] + data['args'], {
+                "RUN_DEPLOY_TOKEN": data['token'],
+                "RUN_DEPLOY_KEY": data['key']
+            })
         case {"cmd": "deploy"}:
             handle_subprocess(fifo_path, ["/opt/run-deploy/bin/run-deploy", data["target"], data["key"]])
+        case {"cmd": "deploy-metal"}:
+            handle_subprocess(fifo_path, ["/opt/run-deploy/bin/run-deploy-metal", data["target"], data["key"]])
     time.sleep(1)
     os.remove(fifo_path)
+
+
+def recv():
+    for queue in pathlib.Path("/tmp").glob("run-deploy-*-queue"):
+        fifo_path = pathlib.Path(str(queue)).read_text('utf-8').strip()
+        os.remove(str(queue))
+        process_queue(fifo_path)
 
 
 commands["recv"] = recv
