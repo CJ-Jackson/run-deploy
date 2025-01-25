@@ -24,8 +24,7 @@ def handle_recv_fifo(fifo_path: str):
 
 def create_recv_fifo_add_to_queue() -> str:
     fifo_path = f"/tmp/run-deploy-recv-fifo-{time.time()}"
-    if not os.path.exists(fifo_path):
-        os.mkfifo(fifo_path, 0o666)
+    os.mkfifo(fifo_path, 0o666)
 
     pathlib.Path(f"/tmp/run-deploy-{time.time()}-queue").write_text(fifo_path, "utf-8")
 
