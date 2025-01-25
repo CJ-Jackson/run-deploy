@@ -141,7 +141,6 @@ def recv():
         process_queue(fifo_path)
 
 
-
 commands["recv"] = recv
 
 try:
