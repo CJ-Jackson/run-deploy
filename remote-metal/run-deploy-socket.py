@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import getpass
 import json
 import os
 import pathlib
@@ -124,6 +125,9 @@ def process_queue(recv_fifo_path: str):
 
 
 def recv():
+    if getpass.getuser() != "root":
+        print("Must be root to run `recv`", file=sys.stderr)
+        exit(1)
     for queue in pathlib.Path("/tmp").glob("run-deploy-*-queue"):
         fifo_path = pathlib.Path(str(queue)).read_text('utf-8').strip()
         os.remove(str(queue))

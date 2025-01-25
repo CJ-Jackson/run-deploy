@@ -5,6 +5,7 @@ import pathlib
 import subprocess
 import sys
 import time
+import getpass
 
 arg_cmd = sys.argv[1]
 commands: dict = {}
@@ -134,6 +135,9 @@ def process_queue(recv_fifo_path: str):
 
 
 def recv():
+    if getpass.getuser() != "root":
+        print("Must be root to run `recv`", file=sys.stderr)
+        exit(1)
     for queue in pathlib.Path("/tmp").glob("run-deploy-*-queue"):
         fifo_path = pathlib.Path(str(queue)).read_text('utf-8').strip()
         os.remove(str(queue))
