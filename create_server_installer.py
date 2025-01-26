@@ -65,7 +65,7 @@ if toml_config.get("uv", False):
 
 
 def copy(src: str, dest: str):
-    if uv_stub:
+    if uv_stub and not dest.endswith("run-deploy-socket"):
         src_str = pathlib.Path(src).read_text("utf-8").removeprefix("#!/usr/bin/env python3").strip()
         dest_str = f'{uv_stub}{src_str}' + "\n"
         pathlib.Path(dest).write_text(dest_str, 'utf-8')
