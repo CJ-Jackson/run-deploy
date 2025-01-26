@@ -23,7 +23,7 @@ def handle_recv_fifo(fifo_path: str):
     exit(data["code"])
 
 
-def create_recv_fifo_add_to_queue() -> str:
+def create_send_fifo_add_to_queue() -> str:
     fifo_path = f"/tmp/run-deploy-recv-fifo-{time.time()}"
     os.mkfifo(fifo_path, 0o666)
 
@@ -46,13 +46,13 @@ def send_cli(cmd: str = "cli"):
         "fifo": fifo_recv_path
     }
 
-    fifo_path = create_recv_fifo_add_to_queue()
+    fifo_send_path = create_send_fifo_add_to_queue()
 
-    with open(fifo_path, "w") as fifo:
+    with open(fifo_send_path, "w") as fifo:
         json.dump(data, fifo)
         fifo.flush()
 
-    os.remove(fifo_path)
+    os.remove(fifo_send_path)
 
     handle_recv_fifo(fifo_recv_path)
 
@@ -75,13 +75,13 @@ def deploy(cmd: str = "deploy"):
         "fifo": fifo_recv_path
     }
 
-    fifo_path = create_recv_fifo_add_to_queue()
+    fifo_send_path = create_send_fifo_add_to_queue()
 
-    with open(fifo_path, "w") as fifo:
+    with open(fifo_send_path, "w") as fifo:
         json.dump(data, fifo)
         fifo.flush()
 
-    os.remove(fifo_path)
+    os.remove(fifo_send_path)
 
     handle_recv_fifo(fifo_recv_path)
 
@@ -130,8 +130,8 @@ def process_queue(recv_fifo_path: str):
             handle_subprocess(fifo_path, ["/opt/run-deploy/bin/run-deploy", data["target"], data["key"]])
         case {"cmd": "deploy-metal"}:
             handle_subprocess(fifo_path, ["/opt/run-deploy/bin/run-deploy-metal", data["target"], data["key"]])
-    time.sleep(1)
     os.remove(fifo_path)
+    time.sleep(1)
 
 
 def recv():
