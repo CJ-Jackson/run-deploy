@@ -114,15 +114,8 @@ def process_queue(recv_fifo_path: str):
                 "RUN_DEPLOY_TOKEN": data['token'],
                 "RUN_DEPLOY_KEY": data['key']
             })
-        case {"cmd": "cli-metal"}:
-            handle_subprocess(fifo_path, ["/opt/run-deploy/bin/run-deploy-metal-cli"] + data['args'], {
-                "RUN_DEPLOY_TOKEN": data['token'],
-                "RUN_DEPLOY_KEY": data['key']
-            })
         case {"cmd": "deploy"}:
             handle_subprocess(fifo_path, ["/opt/run-deploy/bin/run-deploy", data["target"], data["key"]])
-        case {"cmd": "deploy-metal"}:
-            handle_subprocess(fifo_path, ["/opt/run-deploy/bin/run-deploy-metal", data["target"], data["key"]])
     os.remove(fifo_path)
     time.sleep(1)
 
