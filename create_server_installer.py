@@ -89,6 +89,17 @@ if uv_stub:
         python_script = str(python_script)
         copy(python_script, python_script)
 
+pathlib.Path("opt/run-deploy/systemd/system/run-deploy-touch.service").write_text(f"""[Unit]
+Description=Run-deploy init touch service
+
+[Service]
+Type=oneshot
+User={toml_config['deploy_user']}
+ExecStart=/usr/bin/touch /tmp/run-deploy.path
+
+[Install]
+WantedBy=multi-user.target""", "utf-8")
+
 systemd_symlinks = []
 systemd_cmd = []
 systemd_paths = pathlib.Path("opt/run-deploy/systemd/system").glob("run-deploy-*")
@@ -97,7 +108,7 @@ for systemd_name in systemd_paths:
     systemd_symlinks.append(
         f"ln -s '/opt/run-deploy/systemd/system/{systemd_name}' '/etc/systemd/system/{systemd_name}'"
     )
-    if systemd_name.endswith(".timer") or systemd_name.endswith(".path"):
+    if systemd_name.endswith(".timer") or systemd_name.endswith(".path") or systemd_name.endswith("touch.service"):
         systemd_cmd.append(f"systemctl enable '{systemd_name}'")
         systemd_cmd.append(f"systemctl start '{systemd_name}'")
 systemd_symlinks = "\n".join(systemd_symlinks)
