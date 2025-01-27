@@ -35,7 +35,15 @@ def create_send_fifo_add_to_queue() -> str:
     return fifo_path
 
 
+def check_permission():
+    if not os.access("/tmp/run-deploy.path", os.W_OK):
+        print("Has no permission", sys.stderr)
+        exit(100)
+
+
 def send_cli(cmd: str = "cli"):
+    check_permission()
+
     fifo_recv_path = f"/tmp/run-deploy-{cmd}-fifo-{time.time()}"
 
     data = {
@@ -67,6 +75,8 @@ commands["cli-metal"] = send_cli_metal
 
 
 def deploy(cmd: str = "deploy"):
+    check_permission()
+
     fifo_recv_path = f"/tmp/run-deploy-{cmd}-fifo-{time.time()}"
 
     data = {
