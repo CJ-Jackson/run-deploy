@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
-import getpass
 import json
 import os
 import pathlib
 import subprocess
 import sys
 import time
+import getpass
 
 arg_cmd = sys.argv[1]
 commands: dict = {}
 
 
 def handle_recv_fifo(fifo_path: str):
-    while not os.path.exists(fifo_path):
+    while not os.access(fifo_path, os.R_OK):
         time.sleep(1)
     with open(fifo_path, "r") as fifo:
         data = json.load(fifo)
@@ -25,7 +25,7 @@ def handle_recv_fifo(fifo_path: str):
 
 def create_send_fifo_add_to_queue() -> str:
     fifo_path = f"/tmp/run-deploy-recv-fifo-{time.time()}"
-    os.mkfifo(fifo_path, 0o666)
+    os.mkfifo(fifo_path, 0o640)
 
     pathlib.Path(f"/tmp/run-deploy-{time.time()}-queue").write_text(fifo_path, "utf-8")
 
@@ -43,7 +43,8 @@ def send_cli(cmd: str = "cli"):
         "token": os.environ['RUN_DEPLOY_TOKEN'].strip(),
         "key": os.environ['RUN_DEPLOY_KEY'].strip(),
         "args": sys.argv[2:],
-        "fifo": fifo_recv_path
+        "fifo": fifo_recv_path,
+        "gid": os.getgid()
     }
 
     fifo_send_path = create_send_fifo_add_to_queue()
@@ -67,7 +68,8 @@ def deploy(cmd: str = "deploy"):
         "cmd": cmd,
         "target": sys.argv[2].strip(),
         "key": sys.argv[3].strip(),
-        "fifo": fifo_recv_path
+        "fifo": fifo_recv_path,
+        "gid": os.getgid()
     }
 
     fifo_send_path = create_send_fifo_add_to_queue()
@@ -104,7 +106,8 @@ def process_queue(recv_fifo_path: str):
     with open(recv_fifo_path, "r") as fifo:
         data = json.load(fifo)
     fifo_path = data["fifo"]
-    os.mkfifo(fifo_path, 0o666)
+    os.mkfifo(fifo_path, 0o640)
+    os.chown(fifo_path, 0, data["gid"])
     match data:
         case {"cmd": "cli"}:
             handle_subprocess(fifo_path, ["/opt/run-deploy/bin/run-deploy-cli"] + data['args'], {
