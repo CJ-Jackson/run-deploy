@@ -126,10 +126,6 @@ install.write_text(f"""#!/bin/dash
 # Copy opt
 cp -rp opt/run-deploy /opt
 
-# Setup system service
-{systemd_symlinks}
-{systemd_cmd}
-
 # Add user and harden home directory, and copy authorized_keys
 useradd -m -s /bin/dash {toml_config['deploy_user']}
 chown root:{toml_config['deploy_user']} /home/{toml_config['deploy_user']} /home/{toml_config['deploy_user']}/.* 2> /dev/null
@@ -140,6 +136,10 @@ chown root:{toml_config['deploy_user']} /home/{toml_config['deploy_user']}/.ssh
 chmod 750 /home/{toml_config['deploy_user']}/.ssh
 cp /opt/run-deploy/ssh/authorized_keys /home/{toml_config['deploy_user']}/.ssh
 chown root:{toml_config['deploy_user']} /home/{toml_config['deploy_user']}/.ssh/authorized_keys
+
+# Setup system service
+{systemd_symlinks}
+{systemd_cmd}
 
 exit 0
 """, 'utf-8')
