@@ -27,7 +27,7 @@ def create_send_fifo_add_to_queue() -> str:
     fifo_path = f"/tmp/run-deploy-recv-fifo-{time.time()}"
     os.mkfifo(fifo_path, 0o640)
 
-    pathlib.Path(f"/tmp/run-deploy-{time.time()}-queue").write_text(fifo_path, "utf-8")
+    pathlib.Path(f"/tmp/run-deploy-queue/run-deploy-{time.time()}-queue").write_text(fifo_path, "utf-8")
 
     # Trigger systemd oneshot
     pathlib.Path("/tmp/run-deploy.path").touch()
@@ -51,8 +51,7 @@ def send_cli(cmd: str = "cli"):
         "token": os.environ['RUN_DEPLOY_TOKEN'].strip(),
         "key": os.environ['RUN_DEPLOY_KEY'].strip(),
         "args": sys.argv[2:],
-        "fifo": fifo_recv_path,
-        "gid": os.getgid()
+        "fifo": fifo_recv_path
     }
 
     fifo_send_path = create_send_fifo_add_to_queue()
@@ -78,8 +77,7 @@ def deploy(cmd: str = "deploy"):
         "cmd": cmd,
         "target": sys.argv[2].strip(),
         "key": sys.argv[3].strip(),
-        "fifo": fifo_recv_path,
-        "gid": os.getgid()
+        "fifo": fifo_recv_path
     }
 
     fifo_send_path = create_send_fifo_add_to_queue()
@@ -113,11 +111,12 @@ def process_queue(recv_fifo_path: str):
     if not os.path.exists(recv_fifo_path):
         time.sleep(1)
         return
+    path_gid = os.stat(recv_fifo_path).st_gid
     with open(recv_fifo_path, "r") as fifo:
         data = json.load(fifo)
     fifo_path = data["fifo"]
     os.mkfifo(fifo_path, 0o640)
-    os.chown(fifo_path, 0, data["gid"])
+    os.chown(fifo_path, 0, path_gid)
     match data:
         case {"cmd": "cli"}:
             handle_subprocess(fifo_path, ["/opt/run-deploy/bin/run-deploy-cli"] + data['args'], {
@@ -134,7 +133,7 @@ def recv():
     if getpass.getuser() != "root":
         print("Must be root to run `recv`", file=sys.stderr)
         exit(1)
-    for queue in pathlib.Path("/tmp").glob("run-deploy-*-queue"):
+    for queue in pathlib.Path("/tmp/run-deploy-queue").glob("run-deploy-*-queue"):
         fifo_path = pathlib.Path(str(queue)).read_text('utf-8').strip()
         os.remove(str(queue))
         process_queue(fifo_path)

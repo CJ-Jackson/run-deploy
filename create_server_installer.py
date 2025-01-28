@@ -96,6 +96,7 @@ Description=Run-deploy init touch service
 Type=oneshot
 User={toml_config['deploy_user']}
 ExecStart=/usr/bin/touch /tmp/run-deploy.path
+ExecStart=/usr/bin/mkdir /tmp/run-deploy-queue
 
 [Install]
 WantedBy=multi-user.target""", "utf-8")
