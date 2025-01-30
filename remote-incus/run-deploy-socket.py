@@ -104,6 +104,16 @@ commands["deploy"] = deploy
 commands["deploy-metal"] = deploy_metal
 
 
+def root_fail(fifo_path: str, code: int, msg: str):
+    with open(fifo_path, "w") as fifo:
+        json.dump({
+            "code": code,
+            "stderr": msg,
+            "stdout": ""
+        }, fifo)
+        fifo.flush()
+
+
 def handle_subprocess(fifo_path: str, args: list, env=None):
     if env is None:
         env = {}
@@ -127,21 +137,24 @@ def process_queue(recv_fifo_path: str):
     fifo_path = data["fifo"]
     os.mkfifo(fifo_path, 0o640)
     os.chown(fifo_path, 0, path_gid)
-    match data:
-        case {"cmd": "cli"}:
-            handle_subprocess(fifo_path, ["/opt/run-deploy/bin/run-deploy-cli"] + data['args'], {
-                "RUN_DEPLOY_TOKEN": data['token'],
-                "RUN_DEPLOY_KEY": data['key']
-            })
-        case {"cmd": "cli-metal"}:
-            handle_subprocess(fifo_path, ["/opt/run-deploy/bin/run-deploy-metal-cli"] + data['args'], {
-                "RUN_DEPLOY_TOKEN": data['token'],
-                "RUN_DEPLOY_KEY": data['key']
-            })
-        case {"cmd": "deploy"}:
-            handle_subprocess(fifo_path, ["/opt/run-deploy/bin/run-deploy", data["target"], data["key"]])
-        case {"cmd": "deploy-metal"}:
-            handle_subprocess(fifo_path, ["/opt/run-deploy/bin/run-deploy-metal", data["target"], data["key"]])
+    try:
+        match data:
+            case {"cmd": "cli"}:
+                handle_subprocess(fifo_path, ["/opt/run-deploy/bin/run-deploy-cli"] + data['args'], {
+                    "RUN_DEPLOY_TOKEN": data['token'],
+                    "RUN_DEPLOY_KEY": data['key']
+                })
+            case {"cmd": "cli-metal"}:
+                handle_subprocess(fifo_path, ["/opt/run-deploy/bin/run-deploy-metal-cli"] + data['args'], {
+                    "RUN_DEPLOY_TOKEN": data['token'],
+                    "RUN_DEPLOY_KEY": data['key']
+                })
+            case {"cmd": "deploy"}:
+                handle_subprocess(fifo_path, ["/opt/run-deploy/bin/run-deploy", data["target"], data["key"]])
+            case {"cmd": "deploy-metal"}:
+                handle_subprocess(fifo_path, ["/opt/run-deploy/bin/run-deploy-metal", data["target"], data["key"]])
+    except KeyError as e:
+        root_fail(fifo_path, 1, e.__str__())
     os.remove(fifo_path)
     time.sleep(1)
 
@@ -153,7 +166,10 @@ def recv():
     for queue in pathlib.Path("/tmp/run-deploy-queue").glob("run-deploy-*-queue"):
         fifo_path = pathlib.Path(str(queue)).read_text('utf-8').strip()
         os.remove(str(queue))
-        process_queue(fifo_path)
+        try:
+            process_queue(fifo_path)
+        except KeyError as e:
+            print(e.__str__(), file=sys.stderr)
 
 
 commands["recv"] = recv
